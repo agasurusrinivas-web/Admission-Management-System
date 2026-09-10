@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholarship Application Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fdfdfd;
+      margin: 20px;
+
+      color: #222;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1.5px solid #78acd6;
+      max-width: 1400px;
+      margin: auto;
+      background-color: #fdfdfd;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid #999;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f1f1f1;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    input[type="tel"],
+    select {
+      width: 95%;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+
+    .photo-upload {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .photo-box {
+      text-align: center;
+      margin: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 30%;
+      min-width: 200px;
+    }
+
+    .photo-box img {
+      width: 100px;
+      height: 100px;
+      border: 2px solid #777;
+      border-radius: 5px;
+      object-fit: cover;
+      display: none;
+      margin: 5px auto;
+    }
+
+    .office-use {
+      background: #fdfdfd;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .signature-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .signature-box {
+      text-align: center;
+      margin: 10px;
+    }
+
+    .signature-box img {
+      width: 100px;
+      height: 100px;
+      border: 2px solid #777;
+      border-radius: 5px;
+      object-fit: cover;
+      display: none;
+      margin: 5px auto;
+    }
+
+    button {
+      background: #0288d1;
+      color: white;
+      padding: 10px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+      margin: 20px auto;
+    }
+
+    button:hover {
+      background: #01579b;
+    }
+
+    .next-button {
+      background-color: #070707;
+      color: #f2f2f2;
+      text-decoration: none;
+      border-radius: 10px;
+      margin-left: 20px;
+      padding: 10px;
+
+    }
+
+    .previous-button {
+      background-color: #070707;
+      color: #f2f2f2;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 10px;
+      margin-left: 630px;
+      padding: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <form>
+    <h3>21. Detail of Scholarship (to be availed)</h3>
+    <table>
+      <tr>
+        <th>Name of the Scholarship</th>
+        <th>Yes / No</th>
+        <th>Eligibility</th>
+        <th>Enclosure</th>
+        <th>Income Limit issued by the Dy.Tahsildar</th>
+      </tr>
+      <tr>
+        <td> <b style="text-decoration: underline;">For Govt.Quota Students</b><br>First Generation Graduate</td>
+        <td>&nbsp;<input type="radio" name="first_graduate" id="p3_first_graduate_yes" value="yes"> Yes &nbsp;&nbsp; <input type="radio" name="first_graduate" id="p3_first_graduate_no" value="no"> No</td>
+        <td><input type="text" id="first_graduate_eligibility" style="border: none; height: 70px; "></td>
+        <td>only in Electronic Form / Digitally Signed E-Certificate</td>
+        <td>Not Applicable</td>
+      </tr>
+      <tr>
+        <td>General Scholarship (BC / MBC / SC / ST)</td>
+        <td>&nbsp;<input type="radio" name="general_scholarship" id="general_sch_yes" value="yes"> Yes &nbsp;&nbsp; <input type="radio" name="general_scholarship" id="general_sch_no" value="no"> No</td>
+        <td>BC / MBC / SC / ST</td>
+        <td>only in Electronic Form / Digitally Signed E-Certificate</td>
+        <td>2.5 Lakh / PA</td>
+      </tr>
+      <tr>
+        <td><b style="text-decoration: underline;">For GQ/MQ Students</b><br>Post Metric Scholarship Scheme</td>
+        <td>&nbsp;<input type="radio" name="scholarship" id="p3_scholarship_yes" value="yes"> Yes &nbsp;&nbsp; <input type="radio" name="scholarship" id="p3_scholarship_no" value="no"> No</td>
+        <td>SC / ST / SCA / SCC(Scheduled Caste Converted Christian)</td>
+        <td>only in Electronic Form / Digitally Signed E-Certificate</td>
+        <td>2.5 Lakh / PA</td>
+      </tr>
+    </table>
+
+    <h3>22. Name of the Local Guardian (If Hosteller):</h3>
+    <p style="text-decoration: underline;"><input type="text" id="local_guardian_name"></p>
+    <p><b>(Attach Passport Size Photo For Parents and Guardian)</b></p>
+    <div class="photo-upload">
+      <div class="photo-box">
+        <label><b>Father Photo</b></label>
+        <input type="file" id="father_photo" accept="image/*" onchange="previewImage(event, 'fatherPreview')">
+        <input type="tel" placeholder="Phone No." id="father_photo_phone">
+        <img id="fatherPreview" src="" alt="">
+      </div>
+      <div class="photo-box">
+        <label><b>Mother Photo</b></label>
+        <input type="file" id="mother_photo" accept="image/*" onchange="previewImage(event, 'motherPreview')">
+        <input type="tel" placeholder="Phone No." id="mother_photo_phone">
+        <img id="motherPreview" src="" alt="">
+      </div>
+      <div class="photo-box">
+        <label><b>Local Guardian Photo</b></label>
+        <input type="file" id="guardian_photo" accept="image/*" onchange="previewImage(event, 'guardianPreview')">
+        <input type="tel" placeholder="Phone No." id="guardian_photo_phone">
+        <img id="guardianPreview" src="" alt="">
+      </div>
+    </div>
+    <div style="border: 1px solid rgb(19, 19, 19);">
+
+      <h3 style="text-align: center;">FOR OFFICE USE</h3>
+      <div class="office-use">
+        <h3>Admission Details:</h3>
+        <label>1. Admission No.:</label> <input type="number" id="office_admission_no"><br><br>
+        <label>2. Course Allotted:</label>
+        <select id="office_course_allotted">
+          <option>B.E. CSE</option>
+          <option>B.E. CSE-AIML</option>
+          <option>B.E. CSE-CYB.SEC</option>
+          <option>B.E. ECE</option>
+          <option>B.E. EEE</option>
+          <option>B.E. MECH</option>
+          <option>B.E. CIVIL</option>
+          <option>B.Tech AI&DS</option>
+          <option>B.Tech BIOTECH</option>
+          <option>B.Tech CSBS</option>
+          <option>B.Tech IT</option>
+        </select><br><br>
+        <label>3. Stay:</label>
+        <input type="radio" name="stay" id="stay_hostel" value="hostel"> Hostel &nbsp;&nbsp;
+        <input type="radio" name="stay" id="stay_dayscholar" value="dayscholar"> Day Scholar
+        <br><br>
+        <p>4. Scholarship Details:</p>
+        <table>
+          <tr>
+            <th>Name of Scholarship</th>
+            <th>Caste</th>
+            <th>Enclosure</th>
+            <th>Income</th>
+            <th>Eligible / Not Eligible</th>
+          </tr>
+          <tr>
+            <td>First Generation Graduate</td>
+            <td><input type="text" id="office_sch1_caste"></td>
+            <td>&nbsp;<input type="radio" name="office_sch1_ok" id="office_sch1_ok_yes" value="yes"> Yes &nbsp;&nbsp;<input type="radio" name="office_sch1_ok" id="office_sch1_ok_no" value="no"> No</td>
+            <td><input type="number" id="office_sch1_income"></td>
+            <td><input type="text" id="office_sch1_eligible"></td>
+          </tr>
+          <tr>
+            <td>Post Metric Scholarship Scheme</td>
+            <td><input type="text" id="office_sch2_caste"></td>
+            <td>&nbsp;<input type="radio" name="office_sch2_ok" id="office_sch2_ok_yes" value="yes"> Yes &nbsp;&nbsp;<input type="radio" name="office_sch2_ok" id="office_sch2_ok_no" value="no"> No</td>
+            <td><input type="number" id="office_sch2_income"></td>
+            <td><input type="text" id="office_sch2_eligible"></td>
+          </tr>
+          <tr>
+            <td>General Scholarship(BC/MBC/SC/ST)</td>
+            <td><input type="text" id="office_sch3_caste"></td>
+            <td>&nbsp;<input type="radio" name="office_sch3_ok" id="office_sch3_ok_yes" value="yes"> Yes &nbsp;&nbsp;<input type="radio" name="office_sch3_ok" id="office_sch3_ok_no" value="no"> No</td>
+            <td><input type="number" id="office_sch3_income"></td>
+            <td><input type="text" id="office_sch3_eligible"></td>
+          </tr>
+        </table>
+        <center>
+          <p><strong>Admitted / Not Admitted:</strong></p>
+          <p>&nbsp;<input type="radio" name="office_confirm" id="office_confirm_admitted" value="admitted"> Admitted &nbsp;&nbsp; <input type="radio" name="office_confirm" id="office_confirm_not_admitted" value="not_admitted"> Not Admitted</p>
+        </center>
+
+        <!-- Signature Section -->
+        <div class="signature-section">
+          <!-- Verified by (No file) -->
+          <div class="signature-box">
+            <p>Verified by:</p>
+            <input type="text" id="office_verified_by">
+          </div>
+
+          <!-- Signature -->
+          <div class="signature-box">
+            <p>Signature:</p>
+            <input type="file" id="office_verified_sign" accept=".jpg,.jpeg,.png,.pdf"
+              onchange="previewImage(event, 'communitySignPreview')">
+            <img id="communitySignPreview" src="" alt="">
+          </div>
+
+          <!-- Signature of Principal -->
+          <div class="signature-box">
+            <p><b>Signature of Principal:</b></p>
+            <input type="file" id="principal_sign" accept="image/*" onchange="previewImage(event, 'signPreview')">
+            <img id="signPreview" src="" alt="">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 15px; margin-bottom: 50px;">
+
+        <a href="second.html" class="previous-button">Previous</a>
+        <a href="fourth.html" class="next-button">Next</a>
+      </div>
+  </form>
+
+  <script>
+    function previewImage(event, previewId) {
+      const output = document.getElementById(previewId);
+      output.src = URL.createObjectURL(event.target.files[0]);
+      output.style.display = 'block'; // Show image below their respective part
+    }
+
+
+  </script>
+  <script src="{{ url_for('static', filename='form_wizard.js') }}?v=2"></script>
+</body>
+
+</html>

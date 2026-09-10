@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prathyusha Engineering College Application Form</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', serif;
+      margin: 30px 60px;
+      background-color: #fdfdfd;
+      color: #000;
+      background-color: white;
+
+    }
+
+    .header {
+      text-align: center;
+      position: relative;
+    }
+
+    .header img {
+      position: absolute;
+      left: 20px;
+      top: 10px;
+      width: 90px;
+      height: 90px;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    .header p {
+      font-size: 13px;
+      margin: 3px 0;
+    }
+
+    .application {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .application p {
+      margin: 3px 0;
+    }
+
+    .form-section {
+      margin-top: 20px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .left {
+      width: 70%;
+    }
+
+    .photo-column {
+      width: 25%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-box {
+      width: 60%;
+      height: 130px;
+      border: 1px solid #000;
+      text-align: center;
+      font-size: 13px;
+      padding-top: 50px;
+      font-weight: bold;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .photo-placeholder {
+      width: 100%;
+      text-align: center;
+      z-index: 2;
+      position: relative;
+      pointer-events: none;
+    }
+
+    .photo-box img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    #photoInput {
+      display: none;
+    }
+
+    #dobPreview img,
+    #communityPreview img,
+    #curricularPreview img {
+      max-width: 120px;
+      max-height: 120px;
+      border: 1px solid #000;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 5px;
+    }
+
+    td {
+      padding: 4px;
+      vertical-align: top;
+    }
+
+    .student-details {
+      text-align: center;
+      margin-top: 25px;
+      font-weight: bold;
+      text-decoration: underline;
+      font-size: 18px;
+    }
+
+    .address-table {
+      width: 100%;
+      border: 1px solid #000;
+      margin-top: 10px;
+    }
+
+    .address-table th,
+    .address-table td {
+      border: 1px solid #000;
+      padding: 6px;
+      text-align: center;
+    }
+
+    .address-table th {
+      background-color: #f2f2f2;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="email"] {
+      width: 95%;
+      border: none;
+      border-bottom: 1px solid #000;
+      background: none;
+    }
+
+    .program-options label {
+      margin-right: 15px;
+    }
+
+    .parent-table td,
+    .guardian-table td {
+      width: 50%;
+      vertical-align: middle;
+    }
+
+    .parent-table input[type="text"],
+    .guardian-table input[type="text"] {
+      width: 90%;
+      border: none;
+      border-bottom: 1px solid #000;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+
+    .parent-table tr td:first-child,
+    .guardian-table tr td:first-child {
+      padding-right: 20px;
+    }
+
+    #dobFileInput {
+      width: 95%;
+    }
+
+    #communityFileInput,
+    #curricularFileInput {
+      width: 95%;
+    }
+
+    .new-section table {
+      margin-top: 10px;
+    }
+
+    .new-section td {
+      padding: 4px;
+    }
+
+    .aadhar-box {
+      width: 20px;
+      margin-right: 5px;
+      text-align: center;
+    }
+
+    .next-button {
+      background-color: #070707;
+      color: #f2f2f2;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 10px;
+      margin-left: 630px;
+      padding: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="border: 1.5px solid black; padding: 10px;">
+    <div class="header">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="College Logo" style="width: 150px; height: 150px;" />
+      <h1>PRATHYUSHA ENGINEERING COLLEGE</h1>
+      <p><strong>AN AUTONOMOUS INSTITUTION</strong></p>
+      <p>ARANVOYALKUPPAM,POONAMALLEE-TIRUVALLUR ROAD,TIRUVALLUR-602 025.</p>
+      <p>PHONE 044-37673767| Website: <a href="" style="color: rgb(17, 13, 253);">www.prathyusha.edu.in</a></p>
+      <p>Email:<b> admission@prathyusha.edu.in</b></p>
+    </div>
+    <div class="application">
+      <p style="text-decoration: underline;"><strong>APPLICATION FORM</strong></p>
+      <p>
+        For Admission to <strong>First Year & Lateral Entry B.E/B.TECH</strong> for the Year
+        20<input type="number" style="width:40px" min="0" max="99" value="25" /> - 20<input type="number"
+          style="width:40px" min="0" max="99" value="26" />
+      </p>
+    </div>
+    <div class="form-section row">
+      <div class="left">
+        <p><strong>Application No.: <input type="text" id="appNoSearch" placeholder="Type App No."
+              onchange="fetchApplicationDetails()" style="width: 150px; font-weight: normal;" /></strong></p>
+        <p><strong>Name of the Programme:</strong></p>
+        <div class="program-options">
+          <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>B.E.</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <b>:</b>&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="prog_CSE" value="CSE" /> CSE</label>
+          <label><input type="checkbox" /> CSE-AIML</label>
+          <label><input type="checkbox" /> CSE-CYB.SEC</label>
+          <label><input type="checkbox" id="prog_ECE" value="ECE" /> ECE</label>
+          <label><input type="checkbox" /> EEE</label>
+          <label><input type="checkbox" id="prog_MECH" value="MECH" /> MECH</label>
+          <label><input type="checkbox" id="prog_CIVIL" value="CIVIL" /> CIVIL</label><br /><br>
+          <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>B.Tech.</b>&nbsp;&nbsp; <b>:</b>&nbsp;&nbsp;&nbsp;&nbsp;<input
+              type="checkbox" id="prog_AIDS" value="AIDS" /> AI&DS</label>
+          <label><input type="checkbox" /> BIOTECH</label>
+          <label><input type="checkbox" id="prog_CSBS" value="CSBS" /> CSBS</label>
+          <label><input type="checkbox" /> IT</label>
+        </div>
+      </div>
+      <div class="photo-column">
+        <div class="photo-box" id="photoBox" onclick="document.getElementById('photoInput').click()">
+          <span class="photo-placeholder" id="photoPlaceholder">Affix recent<br />passport size<br />photograph</span>
+          <img id="photoPreview"
+            style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:1;">
+          <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(event)" />
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <p><b>1.</b> Name of the Student (in BLOCK Letters): (As in XII std or intermediate Mark sheet) <input type="text"
+          id="student_name" /></p>
+      <p><b>2. (a) </b>
+      <table class="parent-table">
+        <tr>
+          <td style="text-align: center;"><strong>Father</strong></td>
+          <td><strong>Mother</strong></td>
+        </tr>
+        <tr>
+          <td>1. Name of parent: <input type="text" id="father_name" /></td>
+          <td>
+            <pre></pre><input type="text" id="mother_name" />
+          </td>
+        </tr>
+        <tr>
+          <td>2. Parent's Qualification: <input type="text" id="father_qual" /></td>
+          <td>
+            <pre></pre><input type="text" id="mother_qual" />
+          </td>
+        </tr>
+        <tr>
+          <td>3. Occupation: <input type="text" id="father_occupation" /></td>
+          <td>
+            <pre></pre><input type="text" id="mother_occupation" />
+          </td>
+        </tr>
+        <tr>
+          <td>4. Annual Income: <input type="number" id="father_income" /></td>
+          <td>
+            <pre></pre><input type="number" id="mother_income" />
+          </td>
+        </tr>
+        <tr>
+          <td>5. Mobile No: <input type="tel" pattern="[0-9]{10}" maxlength="10" id="father_mobile" /></td>
+          <td>
+            <pre></pre><input type="tel" pattern="[0-9]{10}" maxlength="10" id="mother_mobile" />
+          </td>
+        </tr>
+        <tr>
+          <td>6. Email: <input type="email" id="father_email" /></td>
+          <td>
+            <pre></pre><input type="email" id="mother_email" />
+          </td>
+        </tr>
+      </table>
+      <p><b>2. (b)</b>
+      <table class="guardian-table">
+        <tr>
+          <td>1. Name of the Guardian: <input type="text" id="guardian_name" /></td>
+          <td>
+            <pre></pre><input type="text" id="guardian_name2" />
+          </td>
+        </tr>
+        <tr>
+          <td>2. Guardian Qualification: <input type="text" id="guardian_qual" /></td>
+          <td>
+            <pre></pre><input type="text" id="guardian_qual2" />
+          </td>
+        </tr>
+        <tr>
+          <td>3. Occupation: <input type="text" id="guardian_occ" /></td>
+          <td>
+            <pre></pre><input type="text" id="guardian_occ2" />
+          </td>
+        </tr>
+        <tr>
+          <td>4. Annual Income: <input type="number" id="guardian_income" /></td>
+          <td>
+            <pre></pre><input type="number" id="guardian_income2" />
+          </td>
+        </tr>
+        <tr>
+          <td>5. Mobile No: <input type="tel" pattern="[0-9]{10}" maxlength="10" id="guardian_mobile" /></td>
+          <td>
+            <pre></pre><input type="tel" pattern="[0-9]{10}" maxlength="10" id="guardian_mobile2" />
+          </td>
+        </tr>
+      </table>
+    </div>
+    <p class="student-details"> STUDENT'S DETAILS</p>
+    <p><b>3.</b></p>
+    <table class="address-table">
+      <tr>
+        <th>Details</th>
+        <th>Present Address</th>
+        <th>Permanent Address</th>
+      </tr>
+      <tr>
+        <td>Door No.</td>
+        <td><input type="text" id="addr_door_p" /></td>
+        <td><input type="text" id="addr_door_perm" /></td>
+      </tr>
+      <tr>
+        <td>Street</td>
+        <td><input type="text" id="addr_street" /></td>
+        <td><input type="text" id="addr_street_perm" /></td>
+      </tr>
+      <tr>
+        <td>Place</td>
+        <td><input type="text" id="addr_place_p" /></td>
+        <td><input type="text" id="addr_place_perm" /></td>
+      </tr>
+      <tr>
+        <td>Taluk</td>
+        <td><input type="text" id="addr_taluk_p" /></td>
+        <td><input type="text" id="addr_taluk_perm" /></td>
+      </tr>
+      <tr>
+        <td>District</td>
+        <td><input type="text" id="addr_dist_p" /></td>
+        <td><input type="text" id="addr_dist_perm" /></td>
+      </tr>
+      <tr>
+        <td>Pin Code</td>
+        <td><input type="number" id="addr_pin_p" /></td>
+        <td><input type="number" id="addr_pin_perm" /></td>
+      </tr>
+      <tr>
+        <td>State</td>
+        <td><input type="text" id="addr_state_p" /></td>
+        <td><input type="text" id="addr_state_perm" /></td>
+      </tr>
+      <tr>
+        <td>Mobile No.</td>
+        <td><input type="tel" pattern="[0-9]{10}" maxlength="10" id="addr_mob_p" /></td>
+        <td><input type="tel" pattern="[0-9]{10}" maxlength="10" id="addr_mob_perm" /></td>
+      </tr>
+    </table>
+    <p class="student-details"></p>
+    <div class="new-section">
+      <table>
+        <tr>
+          <td>4. Gender:</td>
+          <td><label><input type="radio" name="gender" value="male" /> Male</label></td>
+          <td><label><input type="radio" name="gender" value="female" /> Female</label></td>
+          <td><label><input type="radio" name="gender" value="transgender" /> Transgender</label></td>
+        </tr>
+        <tr>
+          <td>5. Date of Birth: (Attach True Copy of T.C. from institution last studied)</td>
+          <td colspan="3">
+            <input type="date" name="dob" id="dob_input" />
+            <input type="file" id="dobFileInput" name="dobFile" accept=".jpg,.jpeg,.png,.pdf"
+              onchange="previewDOB(event)" />
+            <div id="dobPreview"></div>
+          </td>
+        </tr>
+        <tr>
+          <td>6. Place of Birth:(Village/Town/City)</td>
+          <td colspan="3"><input type="text" id="place_of_birth" /></td>
+        </tr>
+        <tr>
+          <td>7. Blood Group:</td>
+          <td colspan="3"><input type="text" id="blood_group" /></td>
+        </tr>
+        <tr>
+          <td>8. Mother Tongue:</td>
+          <td colspan="3"><input type="text" id="mother_tongue" /></td>
+        </tr>
+        <tr>
+          <td>9. Civic Status:</td>
+          <td><label><input type="radio" name="civic" /> Panchayat</label></td>
+          <td><label><input type="radio" name="civic" /> Municipality</label></td>
+          <td><label><input type="radio" name="civic" /> Corporation</label></td>
+        </tr>
+        <tr>
+          <td>10. Aadhar No:</td>
+          <td colspan="3">
+            <input type="text" class="aadhar-box" id="aadhar_no" maxlength="12"
+              style="width: 150px; text-align: left;" />
+          </td>
+        </tr>
+        <tr>
+          <td>11. Are you a citizen of India?</td>
+          <td><label><input type="radio" name="citizenship" /> Yes</label></td>
+          <td><label><input type="radio" name="citizenship" /> No</label></td>
+        </tr>
+        <tr>
+          <td> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; If 'No', Mention Country's Name:</td>
+          <td colspan="3"><input type="text" /></td>
+        </tr>
+        <tr>
+          <td>12. Passport No:</td>
+          <td>
+            <pre></pre><input type="text" id="passport_no" />
+          <td>Validity: From <input type="date" id="passport_from" /></td>
+          <td> To <input type="date" id="passport_to" /></td>
+        </tr>
+        <tr>
+          <td>13. Religion:</td>
+          <td colspan="3"><input type="text" id="religion" /></td>
+        </tr>
+        <tr>
+          <td>14. Community: (Tamilnadu Students Only -Attach &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Community Certificate)
+          </td>
+          <td><label><input type="checkbox" /> BC</label></td>
+          <td><label><input type="checkbox" /> BCM</label></td>
+          <td><label><input type="checkbox" /> MBC</label></td>
+          <td><label><input type="checkbox" /> SC</label></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><label><input type="checkbox" /> SCA</label></td>
+          <td><label><input type="checkbox" /> ST</label></td>
+          <td><label><input type="checkbox" /> Others</label></td>
+
+        </tr>
+        <tr>
+          <td></td>
+          <td>
+            <input type="file" id="communityFileInput" name="Communityfile" accept=".jpg,.jpeg,.png,.pdf"
+              onchange="previewCommunity(event)" />
+            <div id="communityPreview"></div>
+          </td>
+        </tr>
+        <tr>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name of the Caste:</td>
+          <td><input type="text" id="caste_name" /></td>
+        </tr>
+        <tr>
+          <td>15. (a) Extra Curricular Activities:</td>
+          <td><label><input type="checkbox" id="activity_sports" /> Sports</label></td>
+          <td><label><input type="checkbox" id="activity_irc" /> IRC</label></td>
+          <td><label><input type="checkbox" id="activity_ncc" /> NCC</label></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><label><input type="checkbox" id="activity_nss" /> NSS</label></td>
+          <td><label><input type="checkbox" id="activity_dance" /> Dance</label></td>
+          <td><label><input type="checkbox" id="activity_finearts" /> Fine Arts</label></td>
+        </tr>
+        <tr>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Attach the proof) If any details:</td>
+          <td colspan="3"><input type="text" id="curricular_details" /></td>
+          <td>
+            <input type="file" id="curricularFileInput" name="Curricularfile" accept=".jpg,.jpeg,.png,.pdf"
+              onchange="previewCurricular(event)" />
+            <div id="curricularPreview"></div>
+          </td>
+        </tr>
+        <tr>
+          <td>16. No. of appearances in qualifying exam:</td>
+          <td><label><input type="radio" name="appearances" id="appearances_one" /> One</label></td>
+          <td><label><input type="radio" name="appearances" id="appearances_two" /> Two</label></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>17. Category under which admission is sought:</td>
+          <td><label><input type="radio" name="admission" id="admission_govt" />(a) Govt</label><br /> TNEA Ranking
+            <input type="number" id="tnea_ranking" />
+          </td>
+          <td><label><input type="radio" name="admission" id="admission_management" /> (b)Management</label>
+            <br />Consortium Ranking <input type="number" id="consortium_ranking" />
+          </td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>18. If Govt. mention the category under which he/she is admitted:</td>
+          <td><label><input type="checkbox" id="govt_category_sports" /> Sports</label></td>
+          <td><label><input type="checkbox" id="govt_category_exservicemen" /> Ex-servicemen</label></td>
+          <td><label><input type="checkbox" id="govt_category_freedomfighter" /> Freedom Fighter</label></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><label><input type="checkbox" id="govt_category_physicallychallenged" /> Physically Challenged</label>
+          </td>
+          <td><label><input type="checkbox" id="govt_category_community" /> Community</label></td>
+          <td><label><input type="checkbox" id="govt_category_opencategory" /> Open Category</label></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><label><input type="checkbox" id="govt_category_7_5_quota" /> 7.5% Quota</label></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>19. Hosteller / Dayscholar:</td>
+          <td><label><input type="radio" name="hosteller" id="hosteller_hosteller" /> Hosteller</label></td>
+          <td><label><input type="radio" name="hosteller" id="hosteller_dayscholar" /> Dayscholar</label></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>(a)Food:</td>
+          <td><label><input type="radio" name="food" id="food_veg" /> Veg</label></td>
+          <td><label><input type="radio" name="food" id="food_nonveg" /> Non-Veg</label></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>(b)Transport :
+            <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Boarding
+            Point:
+          </td>
+          <td colspan="3">
+            <pre></pre><input type="text" id="boarding_point" />
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div style="margin-top: 20px; margin-bottom: 10px; display: flex; justify-content: flex-end; gap: 15px; align-items: center;">
+      <a href="/coordinator_dashboard" class="previous-button" style="margin-left: 0;">Back</a>
+      <a href="second.html" class="next-button" style="margin-left: 0;">Next</a>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='form_wizard.js') }}?v=2"></script>
+  <script>
+    function previewPhoto(event) {
+      const photoBox = document.getElementById('photoBox');
+      const photoPlaceholder = document.getElementById('photoPlaceholder');
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          // Remove old image if present
+          const oldImg = photoBox.querySelector('img');
+          if (oldImg) {
+            photoBox.removeChild(oldImg);
+          }
+          // Hide placeholder text
+          photoPlaceholder.style.display = 'none';
+          // Create and insert image
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.setAttribute('alt', 'Passport Photo');
+          photoBox.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    function previewDOB(event) {
+      const dobPreview = document.getElementById('dobPreview');
+      const file = event.target.files[0];
+      const acceptedImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      if (file && acceptedImageTypes.includes(file.type)) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          dobPreview.innerHTML = '';
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          dobPreview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        dobPreview.innerHTML = '';
+      }
+    }
+    function previewCommunity(event) {
+      const communityPreview = document.getElementById('communityPreview');
+      const file = event.target.files[0];
+      const acceptedImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      if (file && acceptedImageTypes.includes(file.type)) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          communityPreview.innerHTML = '';
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          communityPreview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        communityPreview.innerHTML = '';
+      }
+    }
+    function previewCurricular(event) {
+      const curricularPreview = document.getElementById('curricularPreview');
+      const file = event.target.files[0];
+      const acceptedImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      if (file && acceptedImageTypes.includes(file.type)) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          curricularPreview.innerHTML = '';
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          curricularPreview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        curricularPreview.innerHTML = '';
+      }
+    }
+
+    async function fetchApplicationDetails() {
+      const appNo = document.getElementById('appNoSearch').value;
+      if (!appNo) return;
+      try {
+        const response = await fetch('/search_application?application_number=' + encodeURIComponent(appNo));
+        const res = await response.json();
+        if (res.success && res.found) {
+          const data = res.data;
+          const canonicalAppNo = data.application_number || appNo;
+          if (document.getElementById('appNoSearch')) {
+            document.getElementById('appNoSearch').value = canonicalAppNo;
+          }
+          saveToStorage('application_number', canonicalAppNo);
+          saveToStorage('appNoSearch', canonicalAppNo);
+
+          if (data.student_name && document.getElementById('student_name')) {
+            document.getElementById('student_name').value = data.student_name;
+          }
+          if (data.father_name && document.getElementById('father_name')) {
+            document.getElementById('father_name').value = data.father_name;
+          }
+          if (data.mobile && document.getElementById('father_mobile')) {
+            document.getElementById('father_mobile').value = data.mobile;
+          }
+
+          const formData = data.form_data || {};
+
+          // NEW DB SYNC: Push the backed-up database draft directly into the browser's sessionStorage
+          // This guarantees multi-page progress is seamlessly restored if they reopen the browser
+          const sessionKey = 'pec_confirm_form_data';
+          let currentCache = {};
+          try {
+            const existing = sessionStorage.getItem(sessionKey);
+            if (existing) currentCache = JSON.parse(existing);
+          } catch (e) { }
+
+          // Merge DB draft into cache, DB takes precedence for restored sessions
+          const mergedCache = { ...currentCache, ...formData };
+
+          // Map visited student photo to confirm form photo key
+          if (formData.advPhoto && !mergedCache.photoInput) {
+            mergedCache.photoInput = formData.advPhoto;
+          }
+
+          sessionStorage.setItem(sessionKey, JSON.stringify(mergedCache));
+
+          if (formData.occupation && document.getElementById('father_occupation')) {
+            document.getElementById('father_occupation').value = formData.occupation;
+          }
+          if (formData.annualIncome && document.getElementById('father_income')) {
+            document.getElementById('father_income').value = formData.annualIncome;
+          }
+          if (formData.candDob && document.getElementById('dob_input')) {
+            document.getElementById('dob_input').value = formData.candDob;
+          }
+          if (formData.aadhaar && document.getElementById('aadhar_no')) {
+            document.getElementById('aadhar_no').value = formData.aadhaar;
+          }
+          if (formData.gender) {
+            const genderRadios = document.getElementsByName('gender');
+            for (let i = 0; i < genderRadios.length; i++) {
+              if (genderRadios[i].value.toLowerCase() === formData.gender.toLowerCase()) {
+                genderRadios[i].checked = true;
+              }
+            }
+          }
+
+          if (data.preferred_branch) {
+            const branchMapping = {
+              'CSE': 'prog_CSE',
+              'ECE': 'prog_ECE',
+              'AIDS': 'prog_AIDS',
+              'CSBS': 'prog_CSBS',
+              'MECH': 'prog_MECH',
+              'CIVIL': 'prog_CIVIL'
+            };
+            const cbId = branchMapping[data.preferred_branch];
+            if (cbId && document.getElementById(cbId)) {
+              document.getElementById(cbId).checked = true;
+            }
+          }
+
+          if (data.address && document.getElementById('addr_street')) {
+            document.getElementById('addr_street').value = data.address;
+          }
+
+          // PHOTO AUTO-FILL LOGIC
+          const studentPhoto = formData.photoInput || formData.advPhoto;
+          if (studentPhoto) {
+            const preview = document.getElementById('photoPreview');
+            const placeholder = document.getElementById('photoPlaceholder');
+            if (preview && placeholder) {
+              preview.src = studentPhoto;
+              preview.style.display = 'block';
+              placeholder.style.display = 'none';
+              // Save it to storage so it persists if they navigate
+              saveToStorage('photoInput', studentPhoto);
+            }
+          }
+
+        } else {
+          alert("Application Details Not Found!");
+        }
+      } catch (err) {
+        console.error("Error fetching application details:", err);
+      }
+    }
+  </script>
+</body>
+
+</html>

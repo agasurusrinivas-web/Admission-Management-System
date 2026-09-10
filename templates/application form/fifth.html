@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>First Graduate and Scholarship Details Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #fdfdfd;
+    }
+
+    h2 {
+      text-align: center;
+      text-decoration: underline;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .question {
+      margin: 10px 0;
+    }
+
+    label {
+      display: inline-block;
+      width: 400px;
+      vertical-align: top;
+    }
+
+    .options {
+      display: inline-block;
+    }
+
+    input[type="radio"] {
+      margin-left: 10px;
+    }
+
+    .photo-section {
+      margin-top: 30px;
+    }
+
+    .photo-section label {
+      width: auto;
+    }
+
+    .button-container {
+      text-align: right;
+      margin-top: 30px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #0077cc;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    /* Added style for preview image */
+    #photoPreview {
+      display: none;
+      margin-top: 10px;
+      max-width: 200px;
+      border: 1px solid #000;
+    }
+
+    .next-button {
+      background-color: #070707;
+      color: #f2f2f2;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 10px;
+      margin-left: 20px;
+      padding: 10px;
+
+    }
+
+    .previous-button {
+      background-color: #070707;
+      color: #f2f2f2;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 10px;
+      margin-left: 630px;
+      padding: 10px;
+
+    }
+
+    .container {
+      max-width: 1500px;
+      margin: 40px auto;
+      background: #fdfdfd;
+      padding: 38px 32px 24px 32px;
+      border-radius: 10px;
+      border: 1.5px solid #78acd6;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h2>Details of First Graduate in Family</h2>
+
+    <div class="section">
+      <div class="question">
+        <label>(a) If you are first graduate in your family in a College</label>
+        <div class="options">
+          <label><input type="radio" name="first_graduate" id="first_graduate_yes" value="yes">
+            Yes</input>&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="first_graduate" id="first_graduate_no"
+              value="no"> No</label>
+
+        </div>
+      </div>
+
+      <p>If yes, enclose Original Certificate issued by the competent Authority</p>
+
+      <div class="question">
+        <label>(b) Whether your brother/sister has already availed First Graduate fee concession for studying
+          Professional course</label>
+        <div class="options">
+          <label><input type="radio" name="brother_sister" id="brother_sister_yes" value="yes">
+            Yes</input>&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="brother_sister" id="brother_sister_no"
+              value="no"> No</input></label>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="question">
+        <label>(2) Whether you are willing to avail Post Matric Scholarship scheme only for SC/SCA/ST and Converted
+          Christians (Government Quota / Management Quota)</label>
+        <div class="options">
+          <label><input type="radio" name="scholarship" id="scholarship_yes" value="yes">
+            Yes</input>&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="scholarship" id="scholarship_no" value="no">
+            No</input></label>
+
+        </div>
+      </div>
+    </div>
+
+    <h3>Eligibility for PMSS</h3>
+    <p>Annual Income Limit: SC / SCA / ST / BC Converted Christians : Rs. 2,50,000/-</p>
+
+    <div style="margin-top: 15px; margin-bottom: 10px;">
+      <a href="fourth.html" class="previous-button">Previous</a>
+      <a href="six.html" class="next-button">Next</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='form_wizard.js') }}?v=2"></script>
+</body>
+
+</html>

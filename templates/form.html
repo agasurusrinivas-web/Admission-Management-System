@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prathyusha Engineering College - Admission & Advance Booking Forms</title>
+  <style>
+    body {
+      font-family: "Times New Roman", serif;
+      margin: 20px;
+      background: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid black;
+      padding: 6px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      background: transparent;
+    }
+
+    .required::after {
+      content: " *";
+      color: red;
+      font-weight: bold;
+    }
+
+    .header-table {
+      border: 1px solid black;
+      margin-bottom: 10px;
+    }
+
+    .header-logo {
+      width: 150px;
+      text-align: center;
+      border-right: 2px solid black;
+    }
+
+    .header-logo img {
+      width: 120px;
+      height: 120px;
+    }
+
+    .header-text {
+      text-align: left;
+      font-size: 15px;
+      padding-left: 10px;
+    }
+
+    .header-text hr {
+      border: 1px solid black;
+      margin: 8px 0;
+    }
+
+    .title {
+      font-weight: bold;
+      font-size: 18px;
+      text-align: center;
+      margin: 20px 0 10px 0;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      font-weight: bold;
+      background: #f2f2f2;
+    }
+
+    .btn {
+      margin: 20px 0;
+      padding: 12px 20px;
+      background: darkred;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: red;
+    }
+
+    @media print {
+      .btn {
+        display: none;
+      }
+
+      input,
+      textarea,
+      select {
+        border: none;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+    }
+
+    hr.divider {
+      border: 2px dashed black;
+      margin: 40px 0;
+    }
+
+    img.preview {
+      max-width: 120px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ================== ADMISSION REGISTRATION FORM ================== -->
+  <table class="header-table">
+    <tr>
+      <td class="header-logo"><img src="/static/hlogo.jpg" alt="College Logo"></td>
+      <td class="header-text">
+        <h2>PRATHYUSHA ENGINEERING COLLEGE</h2>
+        <h3>B.E / B.Tech Degree Admission 2025-26</h3>
+        <p>(CSE / ECE / EEE / CYB SEC / MECH / CIVIL / IT / AI&DS / AIML / BIOTECH / CSBS)</p>
+        <hr>
+        <table style="width:100%; border:none;">
+          <tr>
+            <td style="border:none;">
+              <b>How do you know PEC?</b>
+              <select id="knowPEC">
+                <option value="">-- Select --</option>
+                <option>Friends</option>
+                <option>Students</option>
+                <option>Alumni</option>
+                <option>Parents</option>
+                <option>Facebook</option>
+                <option>YouTube</option>
+                <option>Others</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td style="border:none;"><b class="required">Reference Name / Contact Details:</b> <input type="text"
+                id="refDetails"></td>
+            <td style="border:none;"><b class="required">Admission Staff Follow-up Details:</b> <input type="text"
+                id="staffFollow"></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <p class="title">ADMISSION REGISTRATION FORM</p>
+
+  <!-- Candidate Details -->
+  <table>
+    <tr>
+      <td class="required">Application No</td>
+      <td colspan="3">
+        <input type="text" id="mainAppNo" style="font-weight:bold; font-size:16px; color: darkred;" readonly>
+      </td>
+    </tr>
+    <tr>
+      <td class="required">Name of the Candidate</td>
+      <td colspan="3">
+        <input type="text" id="candName" pattern="[A-Za-z ]*"
+          oninput="this.value = this.value.replace(/[^A-Za-z\s]/g,'')" title="Please enter letters and spaces only"
+          required>
+      </td>
+    </tr>
+    <tr>
+      <td class="required">Preferred Branch</td>
+      <td colspan="3">
+        <select id="prefBranch" required style="width: 100%; padding: 4px;">
+          <option value="">Select Branch</option>
+          <option value="CSE">Computer Science and Engineering (CSE)</option>
+          <option value="ECE">Electronics and Communication Engineering (ECE)</option>
+          <option value="AIDS">Artificial Intelligence and Data Science (AI&DS)</option>
+          <option value="CSBS">Computer Science and Business Systems (CSBS)</option>
+          <option value="MECH">Mechanical Engineering (MECH)</option>
+          <option value="CIVIL">Civil Engineering (CIVIL)</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Father / Guardian Name</td>
+      <td colspan="3">
+        <input type="text" id="fatherName" pattern="[A-Za-z ]*"
+          oninput="this.value = this.value.replace(/[^A-Za-z\s]/g,'')" title="Please enter letters and spaces only"
+          required>
+      </td>
+    </tr>
+    <tr>
+      <td class="required">Address</td>
+      <td colspan="3"><textarea rows="3" id="address"></textarea></td>
+    </tr>
+    <tr>
+      <td class="required">Boarding Point / Hostel Option</td>
+      <td colspan="3"><input type="text" id="hostelOption"></td>
+    </tr>
+    <tr>
+      <td class="required">Mobile No</td>
+      <td>
+        <input type="text" id="mobileNo" pattern="[0-9]*" oninput="validateNumberInput(this)"
+          title="Please enter only numbers" required>
+      </td>
+      <td class="required">Occupation</td>
+      <td>
+        <input type="text" id="occupation" pattern="[A-Za-z ]*" oninput="validateTextInput(this)"
+          title="Please enter only letters and spaces" required>
+      </td>
+    </tr>
+    <tr>
+      <td>Date of Birth</td>
+      <td><input type="date" id="candDob" required></td>
+      <td class="required">Gender</td>
+      <td>
+        <select id="gender" required style="width: 100%; padding: 4px;">
+          <option value="">Select Gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td class="required">Caste Category</td>
+      <td>
+        <select id="caste" name="caste" required style="width: 100%; padding: 4px;">
+          <option value="">Select Caste Category</option>
+          <option value="general">General/Open Category</option>
+          <option value="obc">OBC (Other Backward Classes)</option>
+          <option value="sc">SC (Scheduled Caste)</option>
+          <option value="st">ST (Scheduled Tribe)</option>
+          <option value="ews">EWS (Economically Weaker Section)</option>
+          <option value="minorities">Minorities</option>
+        </select>
+      </td>
+      <td>Aadhaar No</td>
+      <td><input type="text" id="aadhaar" pattern="[0-9]*" oninput="validateNumberInput(this)"
+          title="Please enter only numbers"></td>
+    </tr>
+    <tr>
+      <td>Community</td>
+      <td><input type="text" id="community" pattern="[A-Za-z ]*" oninput="validateTextInput(this)"
+          title="Please enter only letters"></td>
+      <td>Annual Income</td>
+      <td><input type="text" id="annualIncome" pattern="[0-9]*" oninput="validateNumberInput(this)"
+          title="Please enter only numbers"></td>
+    </tr>
+  </table>
+
+  <!-- Academic Details -->
+  <h3>Academic Details</h3>
+  <table>
+    <tr>
+      <th>10th Standard</th>
+      <th>Details</th>
+      <th>12th Standard</th>
+      <th>Details</th>
+    </tr>
+    <tr>
+      <td class="required">School Name</td>
+      <td><input type="text" id="school10" required></td>
+      <td class="required">School / Junior College</td>
+      <td><input type="text" id="school12" required></td>
+    </tr>
+    <tr>
+      <td class="required">Board / Medium</td>
+      <td><input type="text" id="board10" required></td>
+      <td class="required">Medium of Study</td>
+      <td><input type="text" id="medium12" required></td>
+    </tr>
+    <tr>
+      <td class="required">Total Marks</td>
+      <td><input type="text" id="marks10" pattern="[0-9]" oninput="validateNumberInput(this)" required></td>
+      <td class="required">Total Marks</td>
+      <td><input type="text" id="marks12" pattern="[0-9]" oninput="validateNumberInput(this)" required></td>
+    </tr>
+    <tr>
+      <td class="required">First Graduate</td>
+      <td><select id="firstGrad" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select></td>
+      <td class="required">School Place</td>
+      <td><input type="text" id="schoolPlace" required></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td class="required">Exam Reg. No.</td>
+      <td><input type="text" id="examReg" required></td>
+    </tr>
+  </table>
+
+  <!-- Cut-off Marks -->
+  <h3>Cut-off Marks</h3>
+  <table>
+    <tr>
+      <th>Subject</th>
+      <th>Marks</th>
+    </tr>
+    <tr>
+      <td class="required">Mathematics</td>
+      <td><input type="text" id="mathMarks" pattern="[0-9]*" oninput="validateNumberInput(this)" required></td>
+    </tr>
+    <tr>
+      <td class="required">Physics</td>
+      <td><input type="text" id="physicsMarks" pattern="[0-9]*" oninput="validateNumberInput(this)" required></td>
+    </tr>
+    <tr>
+      <td class="required">Chemistry</td>
+      <td><input type="text" id="chemMarks" pattern="[0-9]*" oninput="validateNumberInput(this)" required></td>
+    </tr>
+    <tr>
+      <td>Fourth Subject</td>
+      <td><input type="text" id="fourthMarks" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+    </tr>
+  </table>
+
+  <!-- Fee Details -->
+  <h3>Fee Details</h3>
+  <table>
+    <tr>
+      <td>Tuition Fees (MQ)</td>
+      <td>₹1,50,000</td>
+      <td>Tuition Fees (GQ)</td>
+      <td>₹94,000</td>
+    </tr>
+    <tr>
+      <td>Meals - Breakfast</td>
+      <td>₹9,500</td>
+      <td>Meals - Lunch</td>
+      <td>₹26,600</td>
+    </tr>
+    <tr>
+      <td>Hostel</td>
+      <td colspan="3">₹1,10,000</td>
+    </tr>
+    <tr>
+      <td>Transport</td>
+      <td colspan="3">₹24,500 to ₹44,000</td>
+    </tr>
+    <tr>
+      <td>Advance Booking Fee</td>
+      <td colspan="3">₹25,000 <b>(Non-refundable)</b></td>
+    </tr>
+  </table>
+
+  <!-- Siblings Details -->
+  <h3>Siblings Details</h3>
+  <table>
+    <tr class="section-title">
+      <th>Name</th>
+      <th>Class/Year</th>
+      <th>School/College</th>
+    </tr>
+    <tr>
+      <td><input type="text" id="sib1Name" pattern="[A-Za-z0-9 .,'()&/-]*" oninput="validateNameInput(this)"></td>
+      <td><input type="text" id="sib1Class"></td>
+      <td><input type="text" id="sib1School"></td>
+    </tr>
+    <tr>
+      <td><input type="text" id="sib2Name" pattern="[A-Za-z0-9 .,'()&/-]*" oninput="validateNameInput(this)"></td>
+      <td><input type="text" id="sib2Class"></td>
+      <td><input type="text" id="sib2School"></td>
+    </tr>
+  </table>
+
+  <!-- Signatures -->
+  <h3>Signatures</h3>
+  <table>
+    <tr class="section-title">
+      <th class="required">Parent Signature</th>
+      <th class="required">Accounts Office</th>
+      <th class="required">Admission Coordinator</th>
+    </tr>
+    <tr>
+      <td><input type="file" accept="image/*" id="parentSign"></td>
+      <td><input type="file" accept="image/*" id="accountsSign"></td>
+      <td><input type="file" accept="image/*" id="admissionSign"></td>
+    </tr>
+  </table>
+
+  <!-- Office Use Only -->
+  <h3>Office Use Only</h3>
+  <table>
+    <tr>
+      <td class="required">Final Branch:</td>
+      <td><input type="text" id="finalBranch" required></td>
+    </tr>
+    <tr>
+      <td class="required">Final Quota/Admission No:</td>
+      <td><input type="text" id="finalQuota" required></td>
+    </tr>
+    <tr>
+      <td>Booking to GQ Admission No:</td>
+      <td><input type="text" id="bookingGQ"></td>
+    </tr>
+    <tr>
+      <td class="required">Final Total Fees Rs:</td>
+      <td><input type="text" id="finalFees" pattern="[0-9]*" oninput="validateNumberInput(this)" required></td>
+    </tr>
+    <tr>
+      <td class="required">Advance Paid Rs:</td>
+      <td><input type="text" id="advancePaid" pattern="[0-9]*" oninput="validateNumberInput(this)" required></td>
+    </tr>
+    <tr>
+      <td>Scholarship Rs:</td>
+      <td><input type="text" id="scholarship" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+    </tr>
+  </table>
+
+  <div style="text-align:center;">
+    <button class="btn" onclick="window.print()">Download Admission Form (PDF)</button>
+    <button class="btn" id="saveBtn">Save Application</button>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ================== ADVANCE BOOKING FORM ================== -->
+  <h2 style="text-align:center;">ADVANCE BOOKING FORM</h2>
+
+  <table>
+    <tr>
+      <td class="required">Application No:</td>
+      <td><input type="text" id="advAppNo" required></td>
+      <td class="required">Date:</td>
+      <td><input type="date" id="dob" required></td>
+    </tr>
+  </table>
+
+  <table>
+    <tr class="section-title">
+      <td colspan="4">Student Information</td>
+    </tr>
+    <tr>
+      <td class="required">Name</td>
+      <td><input type="text" id="advName" pattern="[A-Za-z ]*"
+          oninput="this.value = this.value.replace(/[^A-Za-z\s]/g,'')" required></td>
+      <td class="required">Father Name</td>
+      <td><input type="text" id="advFather" pattern="[A-Za-z ]*"
+          oninput="this.value = this.value.replace(/[^A-Za-z\s]/g,'')" required></td>
+    </tr>
+    <tr>
+      <td class="required">Mobile</td>
+      <td><input type="text" id="advMobile" pattern="[0-9]*" oninput="validateNumberInput(this)" required></td>
+      <td class="required">Address</td>
+      <td><textarea rows="2" id="advAddress" required></textarea></td>
+    </tr>
+    <tr>
+      <td class="required">Gender</td>
+      <td><select id="advGender" required style="width: 100%; padding: 4px;">
+          <option value="">Select Gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select></td>
+      <td class="required">Booking Branch</td>
+      <td>
+        <select id="advBranch" required style="width: 100%; padding: 4px;">
+          <option value="">Select Branch</option>
+          <option value="CSE">CSE</option>
+          <option value="ECE">ECE</option>
+          <option value="AIDS">AI&DS</option>
+          <option value="CSBS">CSBS</option>
+          <option value="MECH">MECH</option>
+          <option value="CIVIL">CIVIL</option>
+        </select>
+      </td>
+
+    </tr>
+    <tr>
+      <td class="required">Applied for TNEA</td>
+      <td colspan="3">
+        <select id="advTNEA" required style="width: 100%; padding: 4px;">
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Remarks</td>
+      <td colspan="3"><textarea rows="2" id="advRemarks"></textarea></td>
+    </tr>
+    <tr>
+      <td class="required">Student Photo</td>
+      <td colspan="3"><input type="file" accept="image/*" id="advPhoto" required></td>
+    </tr>
+  </table>
+
+  <table>
+    <tr class="section-title">
+      <td colspan="4">Fees Details</td>
+    </tr>
+    <tr>
+      <th>Particulars</th>
+      <th>GQ Fees</th>
+      <th>MQ Fees</th>
+      <th>Remarks</th>
+    </tr>
+    <tr>
+      <td>Tuition Fees</td>
+      <td><input type="text" id="advGQFees" value="94000" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advMQFees" value="150000" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td>Advance Booking ₹25,000 Non-Refundable</td>
+    </tr>
+    <tr>
+      <td>Hostel Fees</td>
+      <td><input type="text" id="advHostelGQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advHostelMQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advHostelRemarks"></td>
+    </tr>
+    <tr>
+      <td>Transport Fees</td>
+      <td><input type="text" id="advTransportGQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advTransportMQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advTransportRemarks"></td>
+    </tr>
+    <tr>
+      <td>Mess Fees - Breakfast</td>
+      <td><input type="text" id="advMessBGQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advMessBMQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advMessBRemarks"></td>
+    </tr>
+    <tr>
+      <td>Mess Fees - Lunch</td>
+      <td><input type="text" id="advMessLGQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advMessLMQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advMessLRemarks"></td>
+    </tr>
+    <tr>
+      <td>Book Fees</td>
+      <td><input type="text" id="advBookGQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advBookMQ" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+      <td><input type="text" id="advBookRemarks"></td>
+    </tr>
+    <tr>
+      <td class="required">Total</td>
+      <td><input type="text" id="advTotalGQ" pattern="[0-9]*" oninput="validateNumberInput(this)" required></td>
+      <td><input type="text" id="advTotalMQ" pattern="[0-9]*" oninput="validateNumberInput(this)" required></td>
+      <td><input type="text" id="advTotalRemarks"></td>
+    </tr>
+    <tr>
+      <td>*Govt. Scholarship/FG/PMS</td>
+      <td><input type="text" id="advScholarGQ" title="You can enter letters, numbers and symbols (e.g., SC/ST/FG/PMS)">
+      </td>
+      <td><input type="text" id="advScholarMQ" title="You can enter letters, numbers and symbols (e.g., SC/ST/FG/PMS)">
+      </td>
+      <td><input type="text" id="advScholarRemarks"></td>
+    </tr>
+  </table>
+
+  <table>
+    <tr class="section-title">
+      <td colspan="2">Important Dates / Remarks</td>
+    </tr>
+    <tr>
+      <td class="required">Last Date for Full Fee Payment</td>
+      <td><input type="date" id="advFullFeeDate" required></td>
+    </tr>
+    <tr>
+      <td class="required">Last Date for Certificate Submission</td>
+      <td><input type="date" id="advCertDate" required></td>
+    </tr>
+    <tr>
+      <td class="required">Last Date for Admission</td>
+      <td><input type="date" id="advAdmissionDate" required></td>
+    </tr>
+  </table>
+  <h4>*Scholarship certificate must be submitted before reopening date.</h4>
+  <h4>**Subject to change after result</h4>
+
+  <table>
+    <tr class="section-title">
+      <td colspan="4">Siblings Details</td>
+    </tr>
+    <tr>
+      <th>Name</th>
+      <th>Class/Year</th>
+      <th>School/College</th>
+    </tr>
+    <tr>
+      <td><input type="text" id="advSib1Name" pattern="[A-Za-z0-9 .,'()&/-]*" oninput="validateNameInput(this)"></td>
+      <td><input type="text" id="advSib1Class"></td>
+      <td><input type="text" id="advSib1School"></td>
+    </tr>
+    <tr>
+      <td><input type="text" id="advSib2Name" pattern="[A-Za-z0-9 .,'()&/-]*" oninput="validateNameInput(this)"></td>
+      <td><input type="text" id="advSib2Class"></td>
+      <td><input type="text" id="advSib2School"></td>
+    </tr>
+  </table>
+
+  <h3>Signatures</h3>
+  <table>
+    <tr class="section-title">
+      <td colspan="3">Signatures</td>
+    </tr>
+    <tr>
+      <th class="required">Parent Signature</th>
+      <th class="required">Accounts Office</th>
+      <th class="required">Admission Coordinator</th>
+    </tr>
+    <tr>
+      <td><input type="file" accept="image/*" id="advParentSign"></td>
+      <td><input type="file" accept="image/*" id="advAccountsSign"></td>
+      <td><input type="file" accept="image/*" id="advAdmissionSign"></td>
+    </tr>
+  </table>
+
+  <table>
+    <tr class="section-title">
+      <td colspan="2">Office Use Only</td>
+    </tr>
+    <tr>
+      <td class="required">Final Branch:</td>
+      <td><input type="text" id="advFinalBranch"></td>
+    </tr>
+    <tr>
+      <td class="required">Final Quota/Admission No:</td>
+      <td><input type="text" id="advFinalQuota"></td>
+    </tr>
+    <tr>
+      <td>Booking to GQ Admission No:</td>
+      <td><input type="text" id="advBookingGQ"></td>
+    </tr>
+    <tr>
+      <td class="required">Final Total Fees Rs:</td>
+      <td><input type="text" id="advFinalFees" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+    </tr>
+    <tr>
+      <td class="required">Advance Paid Rs:</td>
+      <td><input type="text" id="advAdvancePaid" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+    </tr>
+    <tr>
+      <td>Scholarship Rs:</td>
+      <td><input type="text" id="advScholarship" pattern="[0-9]*" oninput="validateNumberInput(this)"></td>
+    </tr>
+  </table>
+
+  <div style="text-align:center;">
+    <button class="btn" onclick="window.print()">Download Advance Booking Form (PDF)</button>
+    <button class="btn" id="saveBtnAdvance">Save Application</button>
+    <button type="button" class="btn" style="background-color: #666;"
+      onclick="window.location.href='/coordinator_dashboard'">
+      Exit to Dashboard
+    </button>
+  </div>
+  <!-- Add this inside your HTML body somewhere -->
+  <div id="popupMessage" class="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg hidden z-50">
+  </div>
+
+  <script>
+    // ================= SCRIPT =================
+
+    // Auto set today's date if empty
+    const dobEl = document.getElementById("dob");
+    if (dobEl && !dobEl.value) dobEl.value = new Date().toISOString().split('T')[0];
+
+    // ================= Input Validation =================
+    function validateNumberInput(input) {
+      if (!/^\d*$/.test(input.value)) {
+        input.setCustomValidity("Please enter numbers only (0-9)");
+        input.value = input.value.replace(/[^\d]/g, '');
+      } else input.setCustomValidity("");
+    }
+
+    function validateTextInput(input) {
+      if (!/^[A-Za-z ]*$/.test(input.value)) {
+        input.setCustomValidity("Please enter text only (letters A-Z)");
+        input.value = input.value.replace(/[^A-Za-z ]/g, '');
+      } else input.setCustomValidity("");
+    }
+
+    function validateNameInput(input) {
+      if (!/^[A-Za-z0-9 .,'()&\/-]*$/.test(input.value)) {
+        input.setCustomValidity("Please enter valid name characters only");
+        input.value = input.value.replace(/[^A-Za-z0-9 .,'()&\/-]/g, '');
+      } else input.setCustomValidity("");
+    }
+
+    // Attach validators
+    document.addEventListener('DOMContentLoaded', function () {
+      // Number fields
+      const numberFields = ['mobileNo', 'aadhaar', 'mathMarks', 'physicsMarks', 'chemMarks', 'fourthMarks', 'advMobile', 'advGQFees', 'advMQFees', 'advHostelGQ', 'advHostelMQ', 'advTransportGQ', 'advTransportMQ', 'advMessBGQ', 'advMessBMQ', 'advMessLGQ', 'advMessLMQ', 'advBookGQ', 'advBookMQ', 'advTotalGQ', 'advTotalMQ', 'advAdvancePaid', 'advScholarship', 'finalFees', 'advancePaid', 'scholarship'];
+      numberFields.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+          input.addEventListener('input', () => validateNumberInput(input));
+        }
+      });
+
+      // Name/Text fields
+      const nameFields = ['candName', 'fatherName', 'sib1Name', 'sib2Name', 'advName', 'advFather', 'advSib1Name', 'advSib2Name'];
+      nameFields.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+          input.addEventListener('input', () => validateNameInput(input));
+        }
+      });
+    });
+
+    // ================= Field Synchronization (Autofill) =================
+    document.addEventListener('DOMContentLoaded', function () {
+      const groups = [
+        ['candName', 'advName'],
+        ['fatherName', 'advFather'],
+        ['mobileNo', 'advMobile'],
+        ['address', 'advAddress'],
+        ['gender', 'advGender'],
+        ['prefBranch', 'advBranch'],
+        ['candDob', 'dob'],
+
+        // Sibling details
+        ['sib1Name', 'advSib1Name'],
+        ['sib1Class', 'advSib1Class'],
+        ['sib1School', 'advSib1School'],
+        ['sib2Name', 'advSib2Name'],
+        ['sib2Class', 'advSib2Class'],
+        ['sib2School', 'advSib2School'],
+
+        // Office use only fields
+        ['finalBranch', 'advFinalBranch'],
+        ['finalQuota', 'advFinalQuota'],
+        ['bookingGQ', 'advBookingGQ'],
+        ['finalFees', 'advFinalFees'],
+        ['advancePaid', 'advAdvancePaid'],
+        ['scholarship', 'advScholarship']
+      ];
+
+      function setupSyncGroup(ids) {
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const eventName = (el.tagName === 'SELECT' || el.type === 'date') ? 'change' : 'input';
+          el.addEventListener(eventName, () => {
+            const val = el.value;
+            ids.forEach(tid => {
+              if (tid === id) return;
+              const t = document.getElementById(tid);
+              if (!t) return;
+              if (t.value !== val) t.value = val;
+            });
+          });
+        });
+
+        // initial propagate
+        const firstVal = ids
+          .map(i => document.getElementById(i))
+          .filter(Boolean)
+          .map(e => e.value)
+          .find(v => v && v.toString().trim() !== '');
+        if (firstVal !== undefined) {
+          ids.forEach(tid => { const t = document.getElementById(tid); if (t && t.value !== firstVal) t.value = firstVal; });
+        }
+      }
+
+      groups.forEach(setupSyncGroup);
+    });
+
+    // ================= Save Form Data to Server =================
+    async function saveFormData() {
+      // Detect app number from either field
+      let appNo = document.getElementById('advAppNo')?.value;
+      if (appNo && (appNo.includes("Pending") || appNo.includes("Auto-generated") || appNo.includes("Error:"))) {
+        appNo = ""; // Send empty to trigger generation
+      }
+
+      // If this is a NEW application (not view mode) and we haven't saved it yet,
+      // FORCE empty application number to backend so it generates a fresh one.
+      // This avoids collisions if multiple users see the same preview number.
+      if (typeof isNewApplication !== 'undefined' && isNewApplication) {
+        appNo = "";
+      }
+
+      if (viewAppNo) {
+        if (!appNo) {
+          alert("Application Number missing in view mode!");
+          return;
+        }
+      }
+
+      // Gather ALL inputs
+      const inputs = document.querySelectorAll('input, select, textarea');
+      const formData = {};
+      const filePromises = [];
+
+      inputs.forEach(input => {
+        if (input.id) {
+          if (input.type === 'checkbox') {
+            formData[input.id] = input.checked;
+          } else if (input.type === 'file') {
+            if (input.files && input.files.length > 0) {
+              const file = input.files[0];
+              const fileId = input.id;
+              const p = new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                  formData[fileId] = e.target.result;
+                  resolve();
+                };
+                reader.readAsDataURL(file);
+              });
+              filePromises.push(p);
+            } else {
+              // If it's empty, we might already have a preview we loaded from the database
+              // Let's try to grab the src of the sibling img if it's base64
+              const img = input.parentElement.querySelector('img.preview');
+              if (img && img.src.startsWith('data:image')) {
+                formData[input.id] = img.src;
+              }
+            }
+          } else {
+            formData[input.id] = input.value || "";
+          }
+        }
+      });
+
+      // Wait for all file reads to finish
+      await Promise.all(filePromises);
+
+      // Extract main fields
+      // Prioritize values from Admission form, fallback to Advance Booking
+      const studentName = document.getElementById('candName')?.value || document.getElementById('advName')?.value;
+      const fatherName = document.getElementById('fatherName')?.value || document.getElementById('advFather')?.value;
+      const preferredBranch = document.getElementById('prefBranch')?.value || document.getElementById('advBranch')?.value;
+      const mobile = document.getElementById('mobileNo')?.value || document.getElementById('advMobile')?.value;
+      const address = document.getElementById('address')?.value || document.getElementById('advAddress')?.value;
+
+      const payload = {
+        application_number: appNo,
+        student_name: studentName,
+        father_name: fatherName,
+        preferred_branch: preferredBranch,
+        mobile: mobile,
+        address: address,
+        form_data: formData,
+        form_type: 'normal'
+      };
+
+      if (!studentName || !fatherName || !preferredBranch) {
+        alert('Please fill at least Name, Father Name, and Branch before saving.');
+        return;
+      }
+
+      try {
+        const popup = document.getElementById('popupMessage');
+        if (popup) {
+          popup.textContent = 'Saving...';
+          popup.classList.remove('hidden', 'bg-red-500', 'bg-green-500');
+          popup.classList.add('bg-blue-500');
+        }
+
+        const response = await fetch('/save_application', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          if (data.application_number) {
+            // Update with generated number
+            appNo = data.application_number;
+            const appBox = document.getElementById('advAppNo');
+            if (appBox) {
+              appBox.value = appNo;
+              appBox.readOnly = true;
+            }
+
+            const mainAppBox = document.getElementById('mainAppNo');
+            if (mainAppBox) {
+              mainAppBox.value = appNo;
+              mainAppBox.readOnly = true;
+            }
+
+            const titleEl = document.querySelector('.title');
+            if (titleEl) titleEl.innerText = `ADMISSION REGISTRATION FORM - Application No: ${appNo}`;
+
+            localStorage.setItem('applicationNumber', appNo);
+
+            // Mark as NO LONGER NEW so subsequent saves update this record
+            if (typeof isNewApplication !== 'undefined') {
+              isNewApplication = false;
+            }
+          }
+
+          if (popup) {
+            popup.textContent = `Application saved successfully! Number: ${appNo}`;
+            popup.classList.remove('bg-blue-500', 'bg-red-500');
+            popup.classList.add('bg-green-500');
+          }
+          sessionStorage.setItem('lastAppNumber', appNo);
+          setTimeout(() => {
+            if (popup) popup.classList.add('hidden');
+          }, 4000);
+        } else {
+          const msg = data.error || 'Unknown error';
+          if (popup) {
+            popup.textContent = 'Error: ' + msg;
+            popup.classList.remove('bg-blue-500', 'bg-green-500');
+            popup.classList.add('bg-red-500');
+          }
+          alert("Error saving: " + msg);
+          setTimeout(() => { if (popup) popup.classList.add('hidden'); }, 3000);
+        }
+      } catch (error) {
+        console.error('Network Error:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    ['saveBtn', 'saveBtnAdvance'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        newBtn.addEventListener('click', saveFormData);
+      }
+    });
+
+    // ================= View/Load Logic =================
+    async function loadApplicationData(appNo) {
+      if (!appNo) return;
+      try {
+        const res = await fetch(`/search_application?application_number=${appNo}`);
+        const data = await res.json();
+
+        if (data.success && data.data) {
+          const appData = data.data;
+          const fd = typeof appData.form_data === 'string' ? JSON.parse(appData.form_data) : (appData.form_data || {});
+
+          Object.keys(fd).forEach(key => {
+            const el = document.getElementById(key);
+            if (el) {
+              if (el.type !== 'file') {
+                if (el.type === 'checkbox') el.checked = fd[key];
+                else el.value = fd[key];
+                el.dispatchEvent(new Event('input'));
+                el.dispatchEvent(new Event('change'));
+              } else if (el.type === 'file' && fd[key] && typeof fd[key] === 'string' && fd[key].startsWith('data:image')) {
+                // Cannot set file input value, but can show preview
+                let img = el.parentElement.querySelector('img.preview');
+                if (!img) {
+                  img = document.createElement('img');
+                  img.classList.add('preview');
+                  el.parentElement.appendChild(img);
+                }
+                img.src = fd[key];
+              }
+            }
+          });
+
+          if (appData.student_name && !document.getElementById('candName').value) {
+            const el = document.getElementById('candName');
+            if (el) { el.value = appData.student_name; el.dispatchEvent(new Event('input')); }
+          }
+          if (appData.application_number) {
+            const el1 = document.getElementById('advAppNo');
+            if (el1) el1.value = appData.application_number;
+
+            const el2 = document.getElementById('mainAppNo');
+            if (el2) el2.value = appData.application_number;
+
+            const titleEl = document.querySelector('.title');
+            if (titleEl) titleEl.innerText = `ADMISSION REGISTRATION FORM - Application No: ${appData.application_number}`;
+          }
+
+          console.log("Application data loaded for View");
+        }
+      } catch (e) {
+        console.error("Error loading application:", e);
+      }
+    }
+
+    // Check URL param for view mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewAppNo = urlParams.get('view');
+    if (viewAppNo) {
+      loadApplicationData(viewAppNo);
+    }
+
+    // ================= Image Preview =================
+    function setupFilePreview(fileInput) {
+      fileInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          let img = fileInput.nextElementSibling;
+          if (!img || img.tagName !== 'IMG') {
+            img = document.createElement('img');
+            img.classList.add('preview');
+            fileInput.parentElement.appendChild(img);
+          }
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    document.querySelectorAll('input[type="file"]').forEach(setupFilePreview);
+
+    // ================= Exit Button =================
+    const exitBtn = document.getElementById("exitBtn");
+    if (exitBtn) {
+      exitBtn.addEventListener("click", async function () {
+        if (!confirm("Are you sure you want to exit? Unsaved application will be deleted.")) return;
+        window.location.href = "/coordinator_dashboard";
+      });
+    }
+
+    // ================= Print buttons =================
+    document.querySelectorAll('button.btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.id.includes("save")) return;
+        const appNumStr = document.getElementById('advAppNo') ? document.getElementById('advAppNo').value : 'Preview';
+        const filename = btn.innerText.includes("Admission")
+          ? `AdmissionForm_${appNumStr}.pdf`
+          : `AdvanceBookingForm_${appNumStr}.pdf`;
+
+        const originalTitle = document.title;
+        document.title = filename;
+        window.print();
+        document.title = originalTitle;
+      });
+    });
+
+  </script>
+  <script>
+    // Separate script block for logic that needs template vars
+    // If not in view mode and server provided a number, use it
+
+    // Track if this is a fresh application vs editing an existing one
+    let isNewApplication = !viewAppNo;
+
+    const serverAppNumber = {{ app_number | tojson }};
+
+    if (serverAppNumber && serverAppNumber.trim() !== '' && !viewAppNo) {
+      const el = document.getElementById('advAppNo');
+      if (el) el.value = serverAppNumber;
+
+      const mainEl = document.getElementById('mainAppNo');
+      if (mainEl) mainEl.value = serverAppNumber;
+
+      const titleEl = document.querySelector('.title');
+      if (titleEl) titleEl.innerText = `ADMISSION REGISTRATION FORM - Application No: ${serverAppNumber}`;
+      // Store in local storage for persistence on refresh
+      localStorage.setItem('applicationNumber', serverAppNumber);
+    } else if (!viewAppNo) {
+      // If serverAppNumber is empty, show placeholder
+      const el = document.getElementById('advAppNo');
+      const mainEl = document.getElementById('mainAppNo');
+
+      if (el) {
+        el.value = "Pending Generation...";
+        el.readOnly = true;
+      }
+      if (mainEl) {
+        mainEl.value = "Pending Generation...";
+        mainEl.readOnly = true;
+      }
+      const titleEl = document.querySelector('.title');
+      if (titleEl) titleEl.innerText = `ADMISSION REGISTRATION FORM - New Application`;
+    }
+  </script>
+</body>
+
+</html>

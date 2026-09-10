@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - PEC</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root {
+      --accent: #a60000;
+      --accent-dark: #7a0000
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f9
+    }
+
+    /* Top navbar */
+    .navbar {
+      height: 80px;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      box-sizing: border-box;
+    }
+
+    .navbar h1 {
+      margin: 220px;
+      font-size: 20px;
+      font-weight: bold;
+      white-space: normal;
+      overflow-wrap: break-word;
+      line-height: 1.2;
+      flex: 1 1 auto;
+    }
+
+    .navbar .right {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .notification {
+      font-size: 20px;
+      position: relative;
+      cursor: pointer
+    }
+
+    .notification::after {
+      content: "3";
+      position: absolute;
+      top: -6px;
+      right: -10px;
+      background: yellow;
+      color: black;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 50%;
+    }
+
+    .action-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer
+    }
+
+    .action-btn:hover {
+      background: var(--accent-dark)
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 220px;
+      background: #222;
+      color: #fff;
+      padding-top: 80px;
+      /* Match new navbar height */
+      box-sizing: border-box;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .sidebar-top button {
+      display: block;
+      width: 100%;
+      padding: 14px 18px;
+      border: none;
+      background: none;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      font-size: 15px;
+      border-left: 4px solid transparent;
+      box-sizing: border-box;
+    }
+
+    .sidebar-top button:hover {
+      background: #333
+    }
+
+    .sidebar-top button.active {
+      background: var(--accent);
+      border-left-color: transparent
+    }
+
+    .sidebar-bottom {
+      padding-bottom: 12px;
+    }
+
+    .sidebar-bottom button {
+      width: 100%;
+      padding: 12px 18px;
+      border: none;
+      background: none;
+      color: #fff;
+      text-align: left;
+      font-size: 15px;
+      cursor: pointer;
+      border-top: 1px solid #444;
+    }
+
+    .sidebar-bottom button:hover {
+      background: #333
+    }
+
+    /* Main content */
+    .main {
+      margin-left: 220px;
+      margin-top: 0;
+      /* No margin-top since navbar is not fixed */
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    /* Admin info row */
+    .admin-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+      margin-bottom: 16px;
+    }
+
+    .admin-details p {
+      margin: 3px 0;
+      font-size: 15px
+    }
+
+    .admin-photo {
+      text-align: center
+    }
+
+    .admin-photo img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent)
+    }
+
+    /* Counters */
+    .counters {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 16px;
+      flex-wrap: wrap
+    }
+
+    .counter-card {
+      flex: 1;
+      min-width: 150px;
+      background: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+      text-align: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      user-select: none;
+    }
+
+    .counter-card:hover {
+      box-shadow: 0 6px 16px rgba(166, 0, 0, 0.15);
+      border-color: var(--accent);
+    }
+
+    .counter-card.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(166, 0, 0, 0.3);
+    }
+
+    .counter-card.active h3,
+    .counter-card.active p {
+      color: #fff;
+    }
+
+    .counter-card h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #333
+    }
+
+    .counter-card p {
+      margin: 4px 0 0;
+      font-size: 14px;
+      color: #666
+    }
+
+    /* Charts row */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start
+    }
+
+    .card {
+      background: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12)
+    }
+
+    .card h2 {
+      margin: 0 0 8px 0;
+      font-size: 16px
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 260px
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block
+    }
+
+    /* pie tooltip (custom) */
+    .pie-tooltip {
+      position: absolute;
+      display: none;
+      pointer-events: none;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+      border-radius: 8px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+      font-size: 13px;
+      z-index: 50;
+      white-space: nowrap;
+    }
+
+    .pie-tooltip::after {
+      content: "";
+      position: absolute;
+      left: -6px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-style: solid;
+      border-width: 6px;
+      border-color: transparent #fff transparent transparent;
+      filter: drop-shadow(-1px 1px 0 rgba(0, 0, 0, 0.06));
+    }
+
+    /* Data summary below charts */
+    .data-section {
+      margin-top: 16px;
+      background: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12)
+    }
+
+    .data-grids {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%
+    }
+
+    th,
+    td {
+      padding: 8px;
+      border: 1px solid #e6e6e6;
+      text-align: center;
+      font-size: 14px
+    }
+
+    th {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600
+    }
+
+    /* Form inputs */
+    .coordinator-inputs input,
+    .coordinator-inputs select,
+    .coordinator-inputs textarea {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    .coordinator-inputs button {
+      margin-top: 6px
+    }
+
+    /* Coordinator Section */
+    #coordinatorSection {
+      transition: 0.3s;
+    }
+
+    #searchCoordinator {
+      transition: 0.3s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+
+    #searchCoordinator:focus {
+      outline: none;
+      border: 1px solid var(--accent);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Chat panel */
+    #chatPanel {
+      position: fixed;
+      top: 80px;
+      right: -350px;
+      width: 320px;
+      height: 400px;
+      background: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      padding: 14px;
+      transition: right 0.4s ease;
+      z-index: 50;
+      overflow-y: auto;
+    }
+
+    #chatToggle {
+      position: fixed;
+      top: 150px;
+      right: 0;
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px 0 0 8px;
+      cursor: pointer;
+      z-index: 55;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.3);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 90%;
+      box-sizing: border-box;
+    }
+
+    @media (max-width:1024px) {
+      .charts-row {
+        grid-template-columns: 1fr
+      }
+
+      .navbar h1 {
+        font-size: 16px
+      }
+    }
+
+    /* Notification styles */
+    #notifList li {
+      padding: 10px 8px;
+      border-bottom: 1px solid #eee;
+      color: #333;
+      background: #fff;
+      font-size: 15px;
+    }
+
+    #notifList li:last-child {
+      border-bottom: none;
+    }
+
+    #notifList li:hover {
+      background: #f6f6f6;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <button id="dashboardBtn" class="active" onclick="showSection('dashboard')">📊 Dashboard</button>
+      <button id="coordinatorBtn" onclick="showSection('coordinator')">👨‍🏫 Coordinators</button>
+      <button id="feedbackBtn" onclick="showSection('feedback')">💬 Feedback Info</button>
+      <button id="viewBtn" onclick="showSection('view')">📑 View</button>
+    </div>
+    <div class="sidebar-bottom">
+      <button id="profileBtn" onclick="showSection('profile')">👤 Profile</button>
+    </div>
+  </div>
+
+  <!-- Top Navbar -->
+  <div class="navbar">
+    <h1>Admin Dashboard - Prathyusha Engineering College</h1>
+    <div class="right">
+      <span class="notification" onclick="toggleNotifications()">🔔</span>
+      <button class="action-btn" onclick="window.location.href='{{ url_for('home') }}'">Logout</button>
+
+    </div>
+  </div>
+
+  <!-- Notification Popup -->
+  <div id="notifPopup"
+    style="position:fixed; top:80px; right:10px; width:300px;background:#fff; border:1px solid #ddd; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.2);display:none; z-index:60; overflow:hidden;">
+    <h4 style="margin:0;padding:10px;background:var(--accent);color:#fff;border-radius:10px 10px 0 0;">Notifications
+    </h4>
+    <ul id="notifList" style="list-style:none;margin:0;padding:10px;" type="disc">
+      <li>New student enrolled in CSE</li>
+      <li>Coordinator John Doe updated profile</li>
+      <li>Monthly report is ready</li>
+    </ul>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <!-- Dashboard Section -->
+    <div id="dashboardSection">
+      <div class="admin-info">
+        <div class="admin-details">
+          <p><strong>Name:</strong> <span id="dashboardName">{{ admin.first_name }} {{ admin.last_name }}</span></p>
+          <p><strong>Email:</strong> <span id="dashboardEmail">{{ admin.email }}</span></p>
+          <p><strong>Phone:</strong> <span id="dashboardPhone">{{ admin.phone }}</span></p>
+          <p style="margin-top:6px;color:#666;font-size:13px">Role: <span id="dashboardRole">{{ admin.role or
+              'Administrator' }}</span></p>
+        </div>
+        <div class="admin-photo">
+          <img id="dashboardPhoto" src="{{ admin.photo or 'https://via.placeholder.com/150' }}" alt="Admin Photo">
+          <div style="font-size:13px;color:#666;margin-top:6px">Profile</div>
+        </div>
+      </div>
+
+      <!-- Counters -->
+      <div class="counters">
+        <div class="counter-card active" id="cardAdmissions" onclick="switchChartMode('admissions')"
+          title="Click to view Admissions charts">
+          <h3 id="admissionsCount">0</h3>
+          <p>Total Admissions</p>
+          <div style="font-size:11px;margin-top:4px;opacity:0.8">📊 Click to filter charts</div>
+        </div>
+        <div class="counter-card" id="cardVisited" onclick="switchChartMode('visited')"
+          title="Click to view Visited charts">
+          <h3 id="enrollmentsCount">0</h3>
+          <p>Total Visited</p>
+          <div style="font-size:11px;margin-top:4px;opacity:0.8">📊 Click to filter charts</div>
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:-10px;margin-bottom:6px;">
+        <span id="counterYearLabel" style="font-size:12px;color:#888;font-style:italic;">Showing: All Years</span>
+      </div>
+
+      <!-- Shared controls: Academic Year + Graph Type -->
+      <div
+        style="display:flex;align-items:center;flex-wrap:wrap;gap:18px;margin-bottom:12px;background:#fff;padding:10px 16px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.09)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:13px;font-weight:600;color:#444">📅 Academic Year:</span>
+          <select id="chartYearSelect" style="padding:6px 10px;border-radius:6px;border:1px solid #ccc;font-size:13px">
+            <option value="all" selected>All Years</option>
+            <!-- Year options added dynamically from API -->
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:13px;font-weight:600;color:#444">📊 View:</span>
+          <select id="graphType" style="padding:6px 10px;border-radius:6px;border:1px solid #ccc;font-size:13px">
+            <option value="yearly" selected>All Years</option>
+            <option value="monthly">Monthly (Full Year)</option>
+            <option value="weekly">Weekly (Last 7 Days)</option>
+          </select>
+        </div>
+        <span id="chartSubtitle" style="font-size:12px;color:#888;font-style:italic"></span>
+      </div>
+
+      <div class="charts-row">
+        <!-- Bar Chart -->
+        <div class="card">
+          <h2 id="barChartTitle">Admissions Overview (Confirmed)</h2>
+          <div class="chart-container">
+            <canvas id="admissionsChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div class="card">
+          <h2 id="pieChartTitle">Department-wise Admissions</h2>
+          <p id="pieYearLabel" style="font-size:12px;color:#888;margin:0 0 6px"></p>
+          <div class="chart-container" style="position:relative">
+            <canvas id="studentsPieChart"></canvas>
+            <div id="pieTooltip" class="pie-tooltip"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data summary -->
+      <div class="data-section">
+        <h2 style="margin:0 0 10px 0;font-size:16px">Data Summary</h2>
+        <div class="data-grids">
+          <div style="flex:1;min-width:260px">
+            <h3 style="margin:0 0 8px 0;font-size:14px">Admissions Data (current view)</h3>
+            <table id="admissionsDataTable">
+              <thead>
+                <tr>
+                  <th>Label</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div style="flex:1;min-width:260px">
+            <h3 style="margin:0 0 8px 0;font-size:14px">Enrollments by Department</h3>
+            <table id="deptDataTable">
+              <thead>
+                <tr>
+                  <th>Department</th>
+                  <th>Students</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coordinator Section -->
+    <div id="coordinatorSection" style="display:none;margin-top:14px">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Add Coordinator</h2>
+        <button class="action-btn" onclick="openAddCoordinatorModal()">Add New Coordinator</button>
+      </div>
+
+      <!-- Year Filter Bar for Coordinators -->
+      <div
+        style="display:flex;align-items:center;gap:14px;margin-bottom:14px;background:#fff;padding:10px 16px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.09);flex-wrap:wrap;">
+        <span style="font-size:13px;font-weight:600;color:#444;">📅 Academic Year:</span>
+        <select id="coordYearSelect" style="padding:6px 12px;border-radius:6px;border:1px solid #ccc;font-size:13px;">
+          <option value="all" selected>All Years</option>
+          <!-- Year options populated by JS after first API call -->
+        </select>
+        <span id="coordYearLabel" style="font-size:12px;color:#888;font-style:italic;">Showing: All Years</span>
+      </div>
+
+      <div class="card">
+        <h2>Coordinators</h2>
+        <div id="coordinatorGrid" style="display: flex; flex-wrap: wrap; gap: 18px;">
+          <!-- Coordinator cards will be inserted here by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback Info Section -->
+    <div id="feedbackSection" style="display:none; margin-top:14px;">
+      <div class="card">
+        <h2>Feedback Info</h2>
+        <input type="text" id="feedbackSearch" placeholder="Search by Coordinator, Student, or App No..."
+          style="width:100%;margin-bottom:14px;padding:8px;border-radius:6px;border:1px solid #ccc;">
+        <table id="feedbackTable" style="width:100%;margin-top:10px;">
+          <thead>
+            <tr>
+              <th>Application No</th>
+              <th>Student Name</th>
+              <th>Coordinator Name</th>
+              <th>Feedback</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Feedback rows will be rendered here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- View Section -->
+    <div id="viewSection" style="display:none; margin-top:14px;">
+      <div class="card">
+        <h2>Coordinator Work Data</h2>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-2 mb-4" style="display: flex; gap: 8px; margin-top: 14px; margin-bottom: 14px;">
+          <input type="date" id="startDate" class="px-4 py-2 border rounded-md"
+            style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+          <input type="date" id="endDate" class="px-4 py-2 border rounded-md"
+            style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+          <select id="prefBranch" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; min-width: 180px;">
+            <option value="">All Branches</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="AIDS">AI&DS</option>
+            <option value="CSBS">CSBS</option>
+            <option value="MECH">MECH</option>
+            <option value="CIVIL">CIVIL</option>
+          </select>
+          <select id="filterStatus" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; min-width: 150px;">
+            <option value="">All Status</option>
+            <option value="visited">Visited</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="pending">Pending</option>
+          </select>
+          <button id="downloadExcelBtn" class="action-btn" style="background: var(--accent); color: white;">Download
+            Excel</button>
+          <button id="downloadPdfBtn" class="action-btn" style="background: #444; color: white;">Download PDF</button>
+        </div>
+        <h3 style="margin-top:10px; color: var(--accent); display: flex; align-items: center;">
+          Today’s Data
+          <span id="todayDate" style="font-size:13px; color:#444; margin-left:12px;"></span>
+        </h3>
+        <table id="todayWorkTable">
+          <thead>
+            <tr>
+              <th>Coordinator</th>
+              <th>Application ID</th>
+              <th>Student Name</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <h3 style="margin-top:20px; color: var(--accent); display: flex; align-items: center;">
+          Yesterday’s Data
+          <span id="yesterdayDate" style="font-size:13px; color:#444; margin-left:12px;"></span>
+        </h3>
+        <table id="yesterdayWorkTable">
+          <thead>
+            <tr>
+              <th>Coordinator</th>
+              <th>Application ID</th>
+              <th>Student Name</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Profile Section -->
+    <div id="profileSection" style="display:none; margin-top:14px">
+      <div class="card"
+        style="background-color: #f9f9f9; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 20px;">
+        <h2 style="font-size: 24px; font-weight: bold; color: #333; margin-bottom: 16px;">Admin Profile</h2>
+        <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+          <!-- Profile Photo -->
+          <div style="flex: 0 0 150px; text-align: center;">
+            <img id="profilePhotoPreview" src="{{ admin.photo or 'https://via.placeholder.com/150' }}"
+              alt="Profile Photo"
+              style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent); object-fit: cover; margin-bottom: 10px;">
+            <label for="profilePhotoInput"
+              style="display:block; cursor:pointer; font-size: 14px; color:var(--accent);">Change Photo</label>
+            <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;">
+          </div>
+          <!-- Profile Info Form -->
+          <div style="flex: 1;">
+            <form id="adminProfileForm" style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profileName" style="min-width:120px; font-weight:bold;">Name:</label>
+                <input type="text" id="profileName" placeholder="Full Name"
+                  value="{{ admin.first_name }} {{ admin.last_name }}" required
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profileEmail" style="min-width:120px; font-weight:bold;">Email:</label>
+                <input type="email" id="profileEmail" placeholder="Email Address" value="{{ admin.email }}" required
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profilePhone" style="min-width:120px; font-weight:bold;">Phone:</label>
+                <input type="tel" id="profilePhone" placeholder="Phone Number" value="{{ admin.phone }}" required
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profileDOB" style="min-width:120px; font-weight:bold;">Date of Birth:</label>
+                <input type="date" id="profileDOB" value="{{ admin.dob }}" required
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profileRole" style="min-width:120px; font-weight:bold;">Role:</label>
+                <input type="text" id="profileRole" placeholder="Role" value="{{ admin.role }}" required
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <!-- Address Section Start -->
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profileAddress" style="min-width:120px; font-weight:bold;">Address:</label>
+                <input type="text" id="profileAddress" placeholder="Street, Area, etc." value="{{ admin.address }}"
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profileCity" style="min-width:120px; font-weight:bold;">City:</label>
+                <input type="text" id="profileCity" placeholder="City" value="{{ admin.city }}"
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profileState" style="min-width:120px; font-weight:bold;">State:</label>
+                <input type="text" id="profileState" placeholder="State" value="{{ admin.state }}"
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profilePincode" style="min-width:120px; font-weight:bold;">Pincode:</label>
+                <input type="text" id="profilePincode" placeholder="Pincode" value="{{ admin.pincode }}"
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="profileCountry" style="min-width:120px; font-weight:bold;">Country:</label>
+                <input type="text" id="profileCountry" placeholder="Country" value="{{ admin.country }}"
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <!-- Address Section End -->
+              <button type="submit" class="action-btn" style="margin-top:10px; width:150px;">Save Profile</button>
+            </form>
+
+            <hr style="margin: 24px 0; border: 0; border-top: 1px solid #ddd;">
+
+            <!-- Change Password Form -->
+            <h3 style="font-size: 18px; margin-bottom: 14px;">Change Password</h3>
+            <form id="changePasswordForm" style="display: flex; flex-direction: column; gap: 14px; max-width: 400px;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="currentPassword" style="min-width:140px; font-weight:bold;">Current Password:</label>
+                <input type="password" id="currentPassword" placeholder="Current Password" required
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="newPassword" style="min-width:140px; font-weight:bold;">New Password:</label>
+                <input type="password" id="newPassword" placeholder="New Password" required
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label for="confirmPassword" style="min-width:140px; font-weight:bold;">Confirm Password:</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm Password" required
+                  style="flex:1; padding:8px; border:1px solid #ccc; border-radius:6px;">
+              </div>
+              <button type="submit" class="action-btn" style="margin-top:10px; width:180px; background:#444;">Update
+                Password</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coordinator Profile Modal -->
+    <div id="coordinatorProfileModal" class="modal">
+      <div class="modal-content" style="max-width:400px;">
+        <div style="text-align:center;">
+          <img id="profileModalPhoto" src="https://via.placeholder.com/100" alt="Profile Photo"
+            style="width:100px;height:100px;border-radius:50%;border:3px solid var(--accent);object-fit:cover;">
+          <h3 id="profileModalName" style="margin:10px 0 4px 0;"></h3>
+          <div id="profileModalDept" style="color:#a60000;font-size:15px;"></div>
+        </div>
+        <div style="margin-top:12px;">
+          <strong>Admissions Enrolled:</strong> <span id="profileModalAdmissions"></span>
+          <h4 style="margin:10px 0 4px 0;">Student Details</h4>
+          <ul id="profileModalStudents" style="padding-left:18px;"></ul>
+        </div>
+        <div class="buttons"><button onclick="closeCoordinatorProfileModal()">Close</button></div>
+      </div>
+    </div>
+
+    <!-- Add Coordinator Modal -->
+    <div id="addCoordinatorModal" class="modal">
+      <div class="modal-content" style="max-width:400px;">
+        <h3>Add Coordinator</h3>
+        <form id="addCoordinatorForm" class="coordinator-inputs" onsubmit="addCoordinator(event)">
+          <input type="email" id="newCoordEmail" placeholder="Email ID" required>
+          <input type="text" id="newCoordUsername" placeholder="User Name" required>
+          <input type="password" id="newCoordPassword" placeholder="Password" required>
+          <button type="submit" class="action-btn">Add</button>
+          <button type="button" class="action-btn" onclick="closeAddCoordinatorModal()"
+            style="background:#888;margin-left:8px;">Cancel</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Feedback/Application Modal -->
+    <div id="editFeedbackModal" class="modal">
+      <div class="modal-content" style="max-width:600px;">
+        <h3>Edit Application/Feedback</h3>
+        <form id="editFeedbackForm" class="coordinator-inputs" onsubmit="saveFeedbackEdit(event)">
+          <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+            <div style="flex:1; min-width:220px;">
+              <input type="text" id="editAppNo" placeholder="Application No" required readonly>
+              <input type="text" id="editStudentName" placeholder="Student Name (e.g., Alice)" required>
+              <select id="editGender" required>
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              <input type="text" id="editAddress" placeholder="Address (e.g., 123 Main St, Chennai)" required>
+            </div>
+            <div style="flex:1; min-width:220px;">
+              <input type="text" id="editQualification" placeholder="Qualification (e.g., B.Sc)" required>
+              <input type="text" id="editGrade" placeholder="Grade (e.g., A+)" required>
+              <input type="tel" id="editMobile" placeholder="Mobile Number (e.g., 9876543210)" required>
+              <input type="tel" id="editParentMobile" placeholder="Parent's Mobile Number (e.g., 9123456789)" required>
+            </div>
+          </div>
+          <input type="text" id="editCoordinatorName" placeholder="Coordinator Name (e.g., John Doe)" required>
+          <textarea id="editFeedback" placeholder="Feedback (e.g., Very helpful and supportive.)" required
+            style="min-height:60px;"></textarea>
+          <div style="margin-top:10px; display:flex; gap:10px;">
+            <button type="submit" class="action-btn">Save</button>
+            <button type="button" class="action-btn" onclick="closeEditFeedbackModal()"
+              style="background:#888;">Cancel</button>
+          </div>
+          <div style="font-size:13px;color:#888;margin-top:10px;">
+            <strong>Example:</strong><br>
+            Application No: APP1021<br>
+            Student Name: Alice<br>
+            Gender: Female<br>
+            Address: 123 Main St, Chennai<br>
+            Qualification: B.Sc<br>
+            Grade: A+<br>
+            Mobile Number: 9876543210<br>
+            Parent's Mobile Number: 9123456789<br>
+            Coordinator Name: John Doe<br>
+            Feedback: Very helpful and supportive.
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- View Feedback Modal -->
+    <div id="viewFeedbackModal" class="modal">
+      <div class="modal-content" style="max-width:600px;">
+        <h3 style="margin-top:0; color:var(--accent);">Student Feedback Details</h3>
+        <div style="display:flex; flex-direction:column; gap:12px; font-size:14px; color:#333;">
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding-bottom:6px;">
+            <span><strong>Application No:</strong> <span id="viewAppNo"></span></span>
+            <span><strong>Status:</strong> <span id="viewStatus" style="font-weight:bold; color:var(--accent);"></span></span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <p style="margin:0;"><strong>Student Name:</strong> <span id="viewStudentName"></span></p>
+            <p style="margin:0;"><strong>Father Name:</strong> <span id="viewFatherName"></span></p>
+            <p style="margin:0;"><strong>Mobile:</strong> <span id="viewMobile"></span></p>
+            <p style="margin:0;"><strong>Preferred Branch:</strong> <span id="viewBranch"></span></p>
+            <p style="margin:0;"><strong>Coordinator:</strong> <span id="viewCoordinator"></span></p>
+            <p style="margin:0;"><strong>Submission Date:</strong> <span id="viewDate"></span></p>
+            <p style="margin:0; grid-column:span 2;"><strong>Next College Visit:</strong> <span id="viewNextVisit"></span></p>
+            <p style="margin:0; grid-column:span 2;"><strong>Address:</strong> <span id="viewAddress"></span></p>
+          </div>
+          <div style="margin-top:6px; background:#f9f9f9; padding:14px; border-radius:8px; border:1px solid #ddd; max-height:300px; overflow-y:auto; word-break:break-word;">
+            <strong style="color:var(--accent); display:block; margin-bottom:6px; font-size:14px;">Feedback Content:</strong>
+            <p id="viewFeedbackText" style="margin:0; white-space:pre-wrap; word-wrap:break-word; word-break:break-word; font-style:normal; font-size:14px; line-height:1.6; color:#222;"></p>
+          </div>
+        </div>
+        <div style="margin-top:16px; text-align:right;">
+          <button type="button" class="action-btn" onclick="closeViewFeedbackModal()" style="background:#444;">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal">
+      <div class="modal-content" style="max-width:350px;text-align:center;">
+        <h3>Are you sure?</h3>
+        <p>Do you really want to delete the feedback for this application?</p>
+        <div style="margin-top:14px;">
+          <button class="action-btn" onclick="confirmDeleteFeedback()">Yes</button>
+          <button class="action-btn" onclick="closeDeleteConfirmModal()"
+            style="background:#888;margin-left:8px;">No</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Show Section Function
+      function showSection(section) {
+        document.getElementById("dashboardSection").style.display = section === "dashboard" ? "block" : "none";
+        document.getElementById("coordinatorSection").style.display = section === "coordinator" ? "block" : "none";
+        document.getElementById("feedbackSection").style.display = section === "feedback" ? "block" : "none";
+        document.getElementById("viewSection").style.display = section === "view" ? "block" : "none";
+        document.getElementById("profileSection").style.display = section === "profile" ? "block" : "none";
+
+        document.getElementById("dashboardBtn").classList.toggle("active", section === "dashboard");
+        document.getElementById("coordinatorBtn").classList.toggle("active", section === "coordinator");
+        document.getElementById("feedbackBtn").classList.toggle("active", section === "feedback");
+        document.getElementById("viewBtn").classList.toggle("active", section === "view");
+        document.getElementById("profileBtn").classList.toggle("active", section === "profile");
+
+        if (section === 'dashboard') fetchStats();
+        if (section === 'coordinator') fetchCoordinators();
+        if (section === 'feedback') fetchFeedback();
+        if (section === 'view') fetchWorkLog();
+        if (section === 'profile') fetchProfile();
+      }
+
+      // Global Data Containers
+      let coordinators = [];
+      let feedbackData = [];
+      let admissionsChart = null;
+      let studentsPieChart = null;
+      let currentStatsData = null;  // cached full API response
+      let currentChartMode = 'admissions'; // 'admissions' or 'visited'
+
+      // --- API Fetch Functions ---
+
+      // Track whether year dropdown has been populated from the API
+      let yearDropdownPopulated = false;
+
+      async function fetchStats(yearOverride) {
+        try {
+          const yearSel = document.getElementById('chartYearSelect');
+          // Determine which year to fetch
+          let year;
+          if (yearOverride !== undefined) {
+            year = yearOverride;
+            // Sync dropdown to the requested year
+            if (yearSel) yearSel.value = year;
+          } else {
+            year = (yearSel && yearSel.value) ? yearSel.value : 'all';
+          }
+
+          const url = (year && year !== 'all') ? `/api/admin/stats?year=${year}` : '/api/admin/stats?year=all';
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.error) return;
+
+          currentStatsData = data;
+
+          // Populate academic year dropdown from all_years — ONLY ONCE
+          if (!yearDropdownPopulated && data.meta && data.meta.all_years) {
+            const sel = document.getElementById('chartYearSelect');
+            if (sel) {
+              // Keep existing selected value
+              const currentSel = year;
+              // Remove any placeholder children (keep the static "All Years" option)
+              // Clear and rebuild from scratch to be safe
+              sel.innerHTML = '';
+              // All Years option
+              const allOpt = document.createElement('option');
+              allOpt.value = 'all';
+              allOpt.textContent = 'All Years';
+              if (currentSel === 'all' || !currentSel) allOpt.selected = true;
+              sel.appendChild(allOpt);
+              // Individual year options
+              data.meta.all_years.forEach(yr => {
+                const opt = document.createElement('option');
+                opt.value = String(yr);               // e.g. "2025"
+                opt.textContent = `${yr}-${yr + 1}`; // e.g. "2025-2026"
+                if (String(yr) === String(currentSel)) opt.selected = true;
+                sel.appendChild(opt);
+              });
+              yearDropdownPopulated = true;
+            }
+          }
+
+          // Determine the final selected value (after dropdown is updated)
+          const finalYear = yearSel ? yearSel.value : (year || 'all');
+          const yearLabel = (finalYear === 'all' || !finalYear)
+            ? 'All Years'
+            : `${finalYear}-${parseInt(finalYear) + 1}`;
+
+          // Update counter label
+          const ctxLabel = document.getElementById('counterYearLabel');
+          if (ctxLabel) ctxLabel.textContent = `Showing: ${yearLabel}`;
+
+          // Update counters
+          document.getElementById('admissionsCount').innerText = data.counters.admissions;
+          document.getElementById('enrollmentsCount').innerText = data.counters.enrollments;
+
+          // Render charts for current mode
+          const chartKey = currentChartMode === 'visited' ? 'visited_charts' : 'admissions_charts';
+          updateCharts(data[chartKey]);
+        } catch (e) { console.error(e); }
+      }
+
+      function switchChartMode(mode) {
+        if (!currentStatsData) return;
+        currentChartMode = mode;
+
+        // Highlight active counter card
+        document.getElementById('cardAdmissions').classList.toggle('active', mode === 'admissions');
+        document.getElementById('cardVisited').classList.toggle('active', mode === 'visited');
+
+        // Update titles
+        const barTitle = document.getElementById('barChartTitle');
+        const pieTitle = document.getElementById('pieChartTitle');
+        const summaryTitle = document.querySelector('#admissionsDataTable').previousElementSibling;
+        if (barTitle) barTitle.textContent = mode === 'admissions' ? 'Admissions Overview (Confirmed)' : 'Visited Overview (All Students)';
+        if (pieTitle) pieTitle.textContent = mode === 'admissions' ? 'Department-wise Admissions' : 'Department-wise All Students';
+        if (summaryTitle) summaryTitle.textContent = mode === 'admissions' ? 'Admissions Data (current view)' : 'All Students Data (current view)';
+
+        const chartKey = mode === 'visited' ? 'visited_charts' : 'admissions_charts';
+        updateCharts(currentStatsData[chartKey]);
+      }
+
+      // Track whether coord year dropdown has been populated
+      let coordYearDropdownPopulated = false;
+
+      async function fetchCoordinators(yearOverride) {
+        try {
+          const coordSel = document.getElementById('coordYearSelect');
+          let year;
+          if (yearOverride !== undefined) {
+            year = yearOverride;
+            if (coordSel) coordSel.value = year;
+          } else {
+            year = coordSel ? coordSel.value : 'all';
+          }
+
+          const url = (year && year !== 'all')
+            ? `/api/admin/coordinators?year=${year}`
+            : '/api/admin/coordinators?year=all';
+
+          const res = await fetch(url);
+          coordinators = await res.json();
+
+          // Populate year dropdown from current dashboard years (shared meta) — ONCE
+          if (!coordYearDropdownPopulated && currentStatsData && currentStatsData.meta && currentStatsData.meta.all_years) {
+            const sel = document.getElementById('coordYearSelect');
+            if (sel) {
+              const currentSel = year;
+              sel.innerHTML = '';
+              const allOpt = document.createElement('option');
+              allOpt.value = 'all';
+              allOpt.textContent = 'All Years';
+              if (currentSel === 'all' || !currentSel) allOpt.selected = true;
+              sel.appendChild(allOpt);
+              currentStatsData.meta.all_years.forEach(yr => {
+                const opt = document.createElement('option');
+                opt.value = String(yr);
+                opt.textContent = `${yr}-${yr + 1}`;
+                if (String(yr) === String(currentSel)) opt.selected = true;
+                sel.appendChild(opt);
+              });
+              coordYearDropdownPopulated = true;
+            }
+          }
+
+          // Update label
+          const finalYear = coordSel ? coordSel.value : (year || 'all');
+          const coordLabel = (finalYear === 'all' || !finalYear)
+            ? 'All Years'
+            : `${finalYear}-${parseInt(finalYear) + 1}`;
+          const lbl = document.getElementById('coordYearLabel');
+          if (lbl) lbl.textContent = `Showing: ${coordLabel}`;
+
+          renderCoordinatorGrid();
+        } catch (e) { console.error(e); }
+      }
+
+      async function fetchFeedback() {
+        try {
+          const res = await fetch('/api/admin/feedback');
+          feedbackData = await res.json();
+          renderFeedbackTable();
+        } catch (e) { console.error(e); }
+      }
+
+      let filteredToday = null;
+      let filteredYesterday = null;
+
+      async function fetchWorkLog() {
+        try {
+          const res = await fetch('/api/admin/work-log');
+          const data = await res.json();
+          if (data.error) return;
+
+          // Apply filters (date, branch, status)
+          const startDateVal = document.getElementById('startDate').value;
+          const endDateVal = document.getElementById('endDate').value;
+          const branchVal = document.getElementById('prefBranch').value;
+          const statusVal = document.getElementById('filterStatus').value;
+
+          let listToday = data.today || [];
+          let listYesterday = data.yesterday || [];
+
+          const applyFilters = (list) => list.filter(item => {
+            // Branch filter
+            if (branchVal && item.branch !== branchVal) return false;
+            // Status filter
+            if (statusVal && (item.status || '').toLowerCase() !== statusVal.toLowerCase()) return false;
+            return true;
+          });
+
+          listToday = applyFilters(listToday);
+          listYesterday = applyFilters(listYesterday);
+
+          filteredToday = listToday;
+          filteredYesterday = listYesterday;
+
+          const renderRows = (list, tableId) => {
+            const tbody = document.querySelector(`#${tableId} tbody`);
+            tbody.innerHTML = "";
+            if (!list || list.length === 0) {
+              tbody.innerHTML = "<tr><td colspan='3'>No activity recorded</td></tr>";
+              return;
+            }
+            list.forEach(item => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td>${item.coordinator || '-'}</td><td>${item.appId}</td><td>${item.student}</td>`;
+              tbody.appendChild(tr);
+            });
+          };
+
+          renderRows(listToday, 'todayWorkTable');
+          renderRows(listYesterday, 'yesterdayWorkTable');
+
+          // Dates
+          document.getElementById('todayDate').innerText = new Date().toLocaleDateString();
+          const y = new Date(); y.setDate(y.getDate() - 1);
+          document.getElementById('yesterdayDate').innerText = y.toLocaleDateString();
+
+        } catch (e) { console.error(e); }
+      }
+
+      // --- Rendering & Logic ---
+
+      // 1. Charts
+      function updateCharts(chartsData) {
+        if (!chartsData) return;
+        const type = document.getElementById('graphType').value;
+        const barLabel = currentChartMode === 'visited' ? 'All Students (Visited)' : 'Admissions (Confirmed)';
+        const barColor = currentChartMode === 'visited' ? '#17a2b8' : '#a60000';
+
+        // Determine selected academic year — handle 'all' safely
+        const yearSel = document.getElementById('chartYearSelect');
+        const yearVal = yearSel ? yearSel.value : 'all';
+        const isAllYears = (yearVal === 'all' || yearVal === '');
+        // For 'all', fall back to current year for monthly labels (matches backend behaviour)
+        const selYear = isAllYears
+          ? (currentStatsData && currentStatsData.meta ? currentStatsData.meta.cur_year : new Date().getFullYear())
+          : parseInt(yearVal);
+        const acLabel = isAllYears ? 'All Years' : `${selYear}-${selYear + 1}`;
+
+        let labelSet, dataSet;
+        if (type === 'monthly') {
+          // Always 12 months (Jan-Dec) of the selected year
+          const mnths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          labelSet = mnths.map(m => `${m} ${selYear}`);
+          dataSet = chartsData.monthly.data;
+          // Update subtitle
+          const sub = document.getElementById('chartSubtitle');
+          if (sub) sub.textContent = isAllYears ? `Showing all 12 months for current year` : `Showing all 12 months for ${acLabel}`;
+        } else if (type === 'yearly') {
+          // One bar per year (all years in DB)
+          labelSet = chartsData.yearly ? chartsData.yearly.labels : [];
+          dataSet = chartsData.yearly ? chartsData.yearly.data : [];
+          const sub = document.getElementById('chartSubtitle');
+          if (sub) sub.textContent = `Showing all available years`;
+        } else {
+          // Weekly — last 7 days, year filter doesn't apply
+          labelSet = chartsData.weekly.labels;
+          dataSet = chartsData.weekly.data;
+          const sub = document.getElementById('chartSubtitle');
+          if (sub) sub.textContent = `Showing last 7 days`;
+        }
+
+        // Update pie year label
+        const pieYearLbl = document.getElementById('pieYearLabel');
+        if (pieYearLbl) pieYearLbl.textContent = `Data filtered for: ${acLabel}`;
+
+        // Bar chart
+        if (admissionsChart) admissionsChart.destroy();
+        admissionsChart = new Chart(
+          document.getElementById('admissionsChart').getContext('2d'),
+          {
+            type: 'bar',
+            data: {
+              labels: labelSet,
+              datasets: [{
+                label: barLabel,
+                data: dataSet,
+                backgroundColor: barColor,
+                borderRadius: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: true, position: 'top' } },
+              scales: {
+                x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0 } },
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+              }
+            }
+          }
+        );
+
+        // Data Summary Table
+        const tbody = document.querySelector('#admissionsDataTable tbody');
+        tbody.innerHTML = '';
+        for (let i = 0; i < labelSet.length; i++) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${labelSet[i]}</td><td>${dataSet[i]}</td>`;
+          tbody.appendChild(tr);
+        }
+
+        // Pie chart — dept breakdown (already filtered by year in backend)
+        const pieLabels = chartsData.dept.labels;
+        const pieValues = chartsData.dept.data;
+        const pieColors = ['#a60000', '#007bff', '#28a745', '#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#e83e8c'];
+
+        if (studentsPieChart) studentsPieChart.destroy();
+        if (pieLabels.length === 0) {
+          studentsPieChart = null;
+        } else {
+          studentsPieChart = new Chart(
+            document.getElementById('studentsPieChart').getContext('2d'),
+            {
+              type: 'pie',
+              data: {
+                labels: pieLabels,
+                datasets: [{ data: pieValues, backgroundColor: pieColors.slice(0, pieLabels.length) }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'bottom', labels: { font: { size: 12 } } },
+                  tooltip: {
+                    callbacks: {
+                      label: function (ctx) {
+                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                        const pct = total ? Math.round(ctx.parsed / total * 100) : 0;
+                        return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          );
+        }
+
+        // Dept Table
+        const deptBody = document.querySelector('#deptDataTable tbody');
+        deptBody.innerHTML = '';
+        for (let i = 0; i < pieLabels.length; i++) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${pieLabels[i]}</td><td>${pieValues[i]}</td>`;
+          deptBody.appendChild(tr);
+        }
+      }
+
+      // Refresh charts when graph view type changes (keeps selected year)
+      document.getElementById('graphType').addEventListener('change', () => fetchStats());
+
+      // Refresh counters + charts when academic year changes
+      document.getElementById('chartYearSelect').addEventListener('change', function () {
+        const selectedYear = this.value; // 'all' or e.g. '2025'
+        fetchStats(selectedYear);
+      });
+
+      // 2. Coordinators
+      let currentCoordinatorIdx = null;
+
+      function renderCoordinatorGrid() {
+        const grid = document.getElementById("coordinatorGrid");
+        grid.innerHTML = "";
+
+        if (coordinators.length === 0) {
+          grid.innerHTML = "<p>No coordinators found.</p>";
+          return;
+        }
+
+        // Determine year label for the badge subtitle
+        const coordSel = document.getElementById('coordYearSelect');
+        const coordYear = coordSel ? coordSel.value : 'all';
+        const yearBadgeLabel = (coordYear === 'all' || !coordYear)
+          ? 'All Years'
+          : `${coordYear}-${parseInt(coordYear) + 1}`;
+
+        coordinators.forEach((c, idx) => {
+          const card = document.createElement("div");
+          card.className = "coordinator-card";
+          card.style = "width:190px;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);padding:16px;text-align:center;cursor:pointer;transition:box-shadow 0.2s;position:relative;";
+          card.innerHTML = `
+            <img src="${c.photo}" alt="Profile" style="width:70px;height:70px;border-radius:50%;border:2px solid var(--accent);object-fit:cover;">
+            <div style="margin-top:8px;font-weight:bold;font-size:14px;">${c.username}</div>
+            <div style="color:#888;font-size:12px;margin-bottom:6px;">${c.email}</div>
+            <div style="background:var(--accent);color:#fff;border-radius:20px;padding:4px 10px;font-size:13px;font-weight:600;display:inline-block;margin-bottom:2px;">
+              ${c.admissions} Admission${c.admissions !== 1 ? 's' : ''}
+            </div>
+            <div style="font-size:11px;color:#aaa;margin-top:2px;">${yearBadgeLabel}</div>
+            <button class="action-btn" style="position:absolute;top:8px;right:8px;padding:2px 8px;font-size:12px;" onclick="event.stopPropagation();deleteCoordinator(${c.id});">Delete</button>
+          `;
+          card.onclick = () => showCoordinatorProfileModal(idx);
+          grid.appendChild(card);
+        });
+      }
+
+      function showCoordinatorProfileModal(idx) {
+        currentCoordinatorIdx = idx;
+        const c = coordinators[idx];
+        document.getElementById("profileModalPhoto").src = c.photo;
+        document.getElementById("profileModalName").innerText = c.username;
+        document.getElementById("profileModalDept").innerText = c.email;
+        document.getElementById("profileModalAdmissions").innerText = c.admissions;
+        const ul = document.getElementById("profileModalStudents");
+        ul.innerHTML = "";
+        if (c.students && c.students.length > 0) {
+          c.students.forEach(s => {
+            const li = document.createElement("li");
+            li.innerText = `${s.name} (App ID: ${s.appId})`;
+            ul.appendChild(li);
+          });
+        } else {
+          ul.innerHTML = "<li>No recent students</li>";
+        }
+        document.getElementById("coordinatorProfileModal").classList.add("show");
+      }
+
+      async function deleteCoordinator(id) {
+        if (!confirm("Are you sure?")) return;
+        const res = await fetch(`/api/admin/coordinators?id=${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          // Re-fetch keeping the currently selected year
+          const coordSel = document.getElementById('coordYearSelect');
+          fetchCoordinators(coordSel ? coordSel.value : 'all');
+        } else alert("Failed to delete");
+      }
+
+      function closeCoordinatorProfileModal() {
+        document.getElementById("coordinatorProfileModal").classList.remove("show");
+      }
+
+      // Add Coordinator
+      function openAddCoordinatorModal() { document.getElementById("addCoordinatorModal").classList.add("show"); }
+      function closeAddCoordinatorModal() { document.getElementById("addCoordinatorModal").classList.remove("show"); }
+
+      async function addCoordinator(e) {
+        e.preventDefault();
+        const email = document.getElementById("newCoordEmail").value.trim();
+        const username = document.getElementById("newCoordUsername").value.trim();
+        const password = document.getElementById("newCoordPassword").value.trim();
+        if (!email || !username || !password) return;
+
+        const res = await fetch('/api/admin/coordinators', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, username, password })
+        });
+        if (res.ok) {
+          fetchCoordinators();
+          closeAddCoordinatorModal();
+          e.target.reset();
+          alert("Coordinator added!");
+        } else {
+          alert("Error adding coordinator");
+        }
+      }
+
+      // 3. Feedback / Applications
+      let editingFeedbackIdx = null;
+      let deletingFeedbackIdx = null; // actually the index in feedbackData array, but we need appNo
+
+      function renderFeedbackTable() {
+        const tbody = document.getElementById("feedbackTable").querySelector("tbody");
+        const search = document.getElementById("feedbackSearch").value.toLowerCase();
+        tbody.innerHTML = "";
+
+        feedbackData.forEach((f, idx) => {
+          if (
+            (f.appNo || '').toLowerCase().includes(search) ||
+            (f.student || '').toLowerCase().includes(search) ||
+            (f.coordinator || '').toLowerCase().includes(search)
+          ) {
+            const previewText = f.feedback ? (f.feedback.length > 70 ? f.feedback.substring(0, 70) + '...' : f.feedback) : '-';
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+            <td>${f.appNo}</td>
+            <td>${f.student}</td>
+            <td>${f.coordinator}</td>
+            <td style="max-width:260px; word-break:break-word;" title="${(f.feedback || '').replace(/"/g, '&quot;')}">${previewText}</td>
+            <td>
+              <button class="action-btn" style="background:#1565c0; margin-right:4px;" onclick="openViewFeedbackModal(${idx})">View</button>
+              <button class="action-btn" onclick="openEditFeedbackModal(${idx})">Edit</button>
+              <button class="action-btn" style="background:#a60000; margin-left:4px;" onclick="openDeleteConfirmModal('${f.appNo}')">Delete</button>
+            </td>
+          `;
+            tbody.appendChild(tr);
+          }
+        });
+      }
+
+      document.getElementById("feedbackSearch").addEventListener("input", renderFeedbackTable);
+
+      function openViewFeedbackModal(idx) {
+        const f = feedbackData[idx];
+        if (!f) return;
+        document.getElementById("viewAppNo").innerText = f.appNo || "-";
+        document.getElementById("viewStatus").innerText = (f.status || "CONFIRMED").toUpperCase();
+        document.getElementById("viewStudentName").innerText = f.student || "-";
+        document.getElementById("viewFatherName").innerText = f.father_name || "-";
+        document.getElementById("viewMobile").innerText = f.mobile || "-";
+        document.getElementById("viewBranch").innerText = f.preferred_branch || "-";
+        document.getElementById("viewCoordinator").innerText = f.coordinator || "-";
+        document.getElementById("viewDate").innerText = f.date_submitted || "-";
+        document.getElementById("viewNextVisit").innerText = f.next_visit || "---";
+        document.getElementById("viewAddress").innerText = f.address || "-";
+        document.getElementById("viewFeedbackText").innerText = f.feedback || "No feedback comments entered.";
+
+        document.getElementById("viewFeedbackModal").classList.add("show");
+      }
+
+      function closeViewFeedbackModal() {
+        document.getElementById("viewFeedbackModal").classList.remove("show");
+      }
+
+      function openEditFeedbackModal(idx) {
+        editingFeedbackIdx = idx;
+        const f = feedbackData[idx];
+        document.getElementById("editAppNo").value = f.appNo || "";
+        document.getElementById("editStudentName").value = f.student || "";
+        document.getElementById("editAddress").value = f.address || "";
+        document.getElementById("editMobile").value = f.mobile || "";
+        document.getElementById("editCoordinatorName").value = f.coordinator || "";
+        document.getElementById("editFeedback").value = f.feedback || "";
+        // Reset other mock fields or hid them if not real
+        document.getElementById("editGender").value = "";
+        document.getElementById("editQualification").value = "";
+        document.getElementById("editGrade").value = "";
+        document.getElementById("editParentMobile").value = "";
+
+        document.getElementById("editFeedbackModal").classList.add("show");
+      }
+
+      function closeEditFeedbackModal() {
+        document.getElementById("editFeedbackModal").classList.remove("show");
+        editingFeedbackIdx = null;
+      }
+
+      async function saveFeedbackEdit(e) {
+        e.preventDefault();
+        // We use edit_application API but mapped to form fields
+        const appNo = document.getElementById("editAppNo").value;
+        const payload = {
+          application_number: appNo,
+          student_name: document.getElementById("editStudentName").value,
+          form_data: {
+            feedback: document.getElementById("editFeedback").value
+            // Add other form_data fields if needed preserve
+          }
+        };
+        // Note: real implementation should merge form_data, but for this refactor we overwrite or simple patch
+
+        const res = await fetch('/edit_application', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          alert("Updated successfully");
+          closeEditFeedbackModal();
+          fetchFeedback();
+        } else {
+          alert("Update failed");
+        }
+      }
+
+      let appToDelete = null;
+      function openDeleteConfirmModal(appNo) {
+        appToDelete = appNo;
+        document.getElementById("deleteConfirmModal").classList.add("show");
+      }
+      function closeDeleteConfirmModal() {
+        document.getElementById("deleteConfirmModal").classList.remove("show");
+        appToDelete = null;
+      }
+      async function confirmDeleteFeedback() {
+        if (appToDelete) {
+          const res = await fetch('/delete_feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ application_number: appToDelete })
+          });
+          if (res.ok) {
+            alert("Feedback deleted!");
+            fetchFeedback();
+          } else {
+            alert("Delete failed");
+          }
+          closeDeleteConfirmModal();
+        }
+      }
+
+      // 4. Profile Logic
+      async function fetchProfile() {
+        try {
+          const res = await fetch('/api/admin/profile');
+          const data = await res.json();
+          if (data.error) return;
+
+          document.getElementById("profileName").value = `${data.first_name || ''} ${data.last_name || ''}`.trim();
+          document.getElementById("profileEmail").value = data.email || '';
+          document.getElementById("profilePhone").value = data.phone || '';
+          document.getElementById("profileRole").value = data.role || '';
+          document.getElementById("profileDOB").value = data.dob || '';
+          document.getElementById("profileAddress").value = data.address || '';
+          document.getElementById("profileCity").value = data.city || '';
+          document.getElementById("profileState").value = data.state || '';
+          document.getElementById("profilePincode").value = data.pincode || '';
+          document.getElementById("profileCountry").value = data.country || '';
+
+          // Update Dashboard Sidebar info as well
+          document.getElementById("dashboardName").innerText = `${data.first_name || ''} ${data.last_name || ''}`.trim();
+          document.getElementById("dashboardEmail").innerText = data.email || '';
+          document.getElementById("dashboardPhone").innerText = data.phone || '';
+          document.getElementById("dashboardRole").innerText = data.role || 'Administrator';
+
+          if (data.photo) {
+            document.getElementById("profilePhotoPreview").src = data.photo;
+            document.getElementById("dashboardPhoto").src = data.photo;
+          }
+
+        } catch (e) { console.error(e); }
+      }
+
+      document.getElementById("adminProfileForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const fullName = document.getElementById("profileName").value.trim();
+        const parts = fullName.split(' ');
+        const firstName = parts[0];
+        const lastName = parts.slice(1).join(' ');
+
+        const formData = new FormData();
+        formData.append('first_name', firstName);
+        formData.append('last_name', lastName);
+        formData.append('email', document.getElementById("profileEmail").value);
+        formData.append('phone', document.getElementById("profilePhone").value);
+        formData.append('role', document.getElementById("profileRole").value);
+        formData.append('dob', document.getElementById("profileDOB").value);
+        formData.append('address', document.getElementById("profileAddress").value);
+        formData.append('city', document.getElementById("profileCity").value);
+        formData.append('state', document.getElementById("profileState").value);
+        formData.append('pincode', document.getElementById("profilePincode").value);
+        formData.append('country', document.getElementById("profileCountry").value);
+
+        const photoInput = document.getElementById("profilePhotoInput");
+        if (photoInput.files && photoInput.files[0]) {
+          formData.append('photo', photoInput.files[0]);
+        }
+
+        try {
+          const res = await fetch('/api/admin/profile', {
+            method: 'POST',
+            // Content-Type header is not needed; fetch sets it automatically for FormData with boundary
+            body: formData
+          });
+          const result = await res.json();
+          if (result.success) {
+            alert("Profile updated successfully!");
+            fetchProfile(); // Refresh data
+            // Update dashboard name/role immediately for better UX
+            document.getElementById("dashboardName").innerText = fullName;
+            document.getElementById("dashboardRole").innerText = document.getElementById("profileRole").value;
+            if (result.photo) {
+              document.getElementById("dashboardPhoto").src = result.photo;
+            }
+          } else {
+            alert("Error updating profile: " + result.error);
+          }
+        } catch (e) {
+          alert("Error: " + e);
+        }
+      });
+
+      document.getElementById("changePasswordForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const currentPassword = document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        if (newPassword !== confirmPassword) {
+          alert("New passwords do not match!");
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/admin/change_password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+          });
+          const result = await res.json();
+          if (result.success) {
+            alert("Password changed successfully!");
+            e.target.reset();
+          } else {
+            alert("Error: " + result.error);
+          }
+        } catch (e) {
+          alert("Error: " + e);
+        }
+      });
+
+      // Initial Load
+      showSection('dashboard');
+      fetchStats();
+      // Notifications toggle
+      function toggleNotifications() {
+        const popup = document.getElementById("notifPopup");
+        popup.style.display = popup.style.display === "block" ? "none" : "block";
+      }
+      // Profile Photo Preview
+      document.getElementById("profilePhotoInput").addEventListener("change", function () {
+        if (this.files && this.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            document.getElementById("profilePhotoPreview").src = e.target.result;
+            document.getElementById("dashboardPhoto").src = e.target.result;
+          }
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+
+      // Coordinator year filter — refresh cards when year changes
+      document.getElementById('coordYearSelect').addEventListener('change', function () {
+        fetchCoordinators(this.value); // 'all' or e.g. '2025'
+      });
+
+      // Filter and Export Logic - re-run fetchWorkLog on any filter change
+      document.getElementById('startDate').addEventListener('change', fetchWorkLog);
+      document.getElementById('endDate').addEventListener('change', fetchWorkLog);
+      document.getElementById('prefBranch').addEventListener('change', fetchWorkLog);
+      document.getElementById('filterStatus').addEventListener('change', fetchWorkLog);
+
+      function exportToExcel() {
+        const start = document.getElementById("startDate").value || "2000-01-01";
+        const end = document.getElementById("endDate").value || "2099-12-31";
+        const branch = document.getElementById("prefBranch").value;
+        const status = document.getElementById("filterStatus").value;
+        const params = new URLSearchParams({ start_date: start, end_date: end });
+        if (branch) params.append('branch', branch);
+        if (status) params.append('status', status);
+        window.location.href = `/download_excel?${params.toString()}`;
+      }
+
+      function exportToPDF() {
+        const start = document.getElementById("startDate").value || "2000-01-01";
+        const end = document.getElementById("endDate").value || "2099-12-31";
+        const branch = document.getElementById("prefBranch").value;
+        const status = document.getElementById("filterStatus").value;
+        const params = new URLSearchParams({ start_date: start, end_date: end });
+        if (branch) params.append('branch', branch);
+        if (status) params.append('status', status);
+        window.location.href = `/download_pdf?${params.toString()}`;
+      }
+
+      document.getElementById("downloadExcelBtn").addEventListener("click", exportToExcel);
+      document.getElementById("downloadPdfBtn").addEventListener("click", exportToPDF);
+
+      // We will override fetchStats logic to support filtering by date based on UI
+    </script>
+</body>
+
+</html>

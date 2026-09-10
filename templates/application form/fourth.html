@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificates to be Enclosed</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fdfdfd;
+      margin: 20px;
+      color: #222;
+    }
+
+    h2 {
+      text-align: center;
+      background: #0277bd;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    form {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      border: 1.5px solid #78acd6;
+      max-width: 1400px;
+      margin: auto;
+      background-color: #fdfdfd;
+    }
+
+    ol {
+      margin-left: 30px;
+      line-height: 1.8;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #999;
+      font-size: 15px;
+      resize: vertical;
+    }
+
+    p {
+      font-size: 15px;
+    }
+
+    button {
+      background: #0288d1;
+      color: white;
+      padding: 10px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+      margin: 25px auto 10px;
+    }
+
+    button:hover {
+      background: #01579b;
+    }
+
+    .next-button {
+      background-color: #070707;
+      color: #f2f2f2;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 10px;
+      margin-left: 20px;
+      padding: 10px;
+
+    }
+
+    .previous-button {
+      background-color: #070707;
+      color: #f2f2f2;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 10px;
+      margin-left: 630px;
+      padding: 10px;
+
+    }
+  </style>
+</head>
+
+<body>
+
+
+  <form>
+    <h3 style="text-align: center; font-size: 30px;">Certificates to be Enclosed with the Application</h3>
+    <p>The application should be submitted along with the following 3 sets of Xerox copies of certificates.
+      However, the original certificates must be produced at the time of admission.</p>
+
+    <ol>
+      <li>10<sup>th</sup> or SSC / H.S Vocational Certificate / Diploma Certificate</li>
+      <li>HSC or Intermediate</li>
+      <li>Transfer Certificate</li>
+      <li>Conduct Certificate</li>
+      <li>Community Certificate (e-Certificate)</li>
+      <li>Extra Curricular Activities Certificate (if any)</li>
+      <li>General Rank Card issued by Consortium or A.U.</li>
+      <li>Anna University Allotment Order with Payment Receipt (Single Window Candidates only)</li>
+      <li>Medical Fitness Certificate with Blood Group</li>
+      <li>Migration Certificate (Compulsory for students from states other than Tamil Nadu)</li>
+      <li>Eligibility Certificate (Applicable only for other state students, must be produced at admission)</li>
+      <li>5 Recent Passport Size Photos (Name & Department written on back)</li>
+      <li>
+        If a student claims First Graduate Concession, submit the following certificates
+        from HQ Dy. Tahsildar only in electronic form / digitally signed e-certificate:
+        <ul type="none">
+          <li>(i)First Graduate Certificate</li>
+          <li>(ii)Joint Declaration Form</li>
+          <li>(iii)Nativity Certificate</li>
+        </ul>
+      </li>
+    </ol>
+
+    <h3>Any other Achievements / Awards:</h3>
+    <textarea id="achievements_awards"
+      placeholder="Mention your achievements, awards or special recognitions here..."></textarea>
+
+    <div style="margin-top: 15px; margin-bottom: 10px;">
+      <a href="third.html" class="previous-button">Previous</a>
+      <a href="fifth.html" class="next-button">Next</a>
+    </div>
+  </form>
+
+  <script>
+    function goNext() {
+      alert("Proceeding to the next section...");
+      // Add redirection logic if needed, for example:
+      // window.location.href = 'nextform.html';
+    }
+  </script>
+  <script src="{{ url_for('static', filename='form_wizard.js') }}?v=2"></script>
+</body>
+
+</html>

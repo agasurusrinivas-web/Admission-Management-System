@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Application - {{ app_no }}</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            margin: 0;
+            padding: 0;
+            color: #000;
+            font-size: 13px;
+            background: #f5f5f5;
+        }
+
+        .page {
+            padding: 24px 44px;
+            page-break-after: always;
+            background: #fff;
+            margin: 20px auto;
+            max-width: 900px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            border-radius: 4px;
+        }
+
+        .page:last-of-type {
+            page-break-after: auto;
+        }
+
+        .hdr {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .hdr h1 {
+            font-size: 18px;
+            margin: 2px 0;
+            text-transform: uppercase;
+        }
+
+        .hdr p {
+            margin: 2px 0;
+            font-size: 12px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 14px;
+            text-decoration: underline;
+            margin: 16px 0 6px;
+            text-transform: uppercase;
+        }
+
+        h3 {
+            font-size: 13px;
+            margin: 12px 0 4px;
+            text-decoration: underline;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 4px 7px;
+            font-size: 12px;
+        }
+
+        th {
+            background: #f2f2f2;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        ol,
+        ul {
+            margin: 4px 0 4px 20px;
+            font-size: 12px;
+        }
+
+        li {
+            margin-bottom: 3px;
+            line-height: 1.4;
+        }
+
+        p {
+            margin: 4px 0;
+            font-size: 12px;
+        }
+
+        .sig-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 30%;
+        }
+
+        .sig-line {
+            border-top: 1px solid #000;
+            padding-top: 4px;
+            margin-top: 30px;
+            font-size: 11px;
+        }
+
+        .print-bar {
+            text-align: center;
+            padding: 20px;
+            border-top: 2px solid #1565c0;
+            background: #fff;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #1b5e20;
+            color: #fff;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .top-bar {
+            background: #1565c0;
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-bar h2 {
+            color: #fff;
+            text-decoration: none;
+            margin: 0;
+            font-size: 16px;
+        }
+
+        @media print {
+            .page {
+                margin: 0;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .print-bar,
+            .top-bar {
+                display: none;
+            }
+
+            body {
+                background: #fff;
+            }
+        }
+
+        /* Photo Box Styles for Page 1 */
+        .page1-container {
+            position: relative;
+        }
+
+        .student-photo-box {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+            height: 140px;
+            border: 2px solid #000;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            z-index: 10;
+        }
+
+        .student-photo-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .student-photo-box span {
+            font-size: 10px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+        <h2>Confirm Application Form &mdash; View Mode <span class="status-badge">{{ status | upper }}</span></h2>
+        <div>
+            <span style="font-size:13px; margin-right: 16px;">App No: <strong>{{ app_no }}</strong> | Submitted: {{
+                date_submitted }}</span>
+            <a href="/download_application_pdf/{{ app_no }}" target="_blank"
+                style="padding:8px 20px;background:#2e7d32;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:14px;text-decoration:none;margin-right:8px;display:inline-block;">&#128462;
+                Download Application Form (PDF)</a>
+            <button onclick="window.print()"
+                style="padding:8px 24px;background:#fff;color:#1565c0;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:14px;">&#128424;
+                Print / Save PDF</button>
+            <button onclick="window.close()"
+                style="padding:8px 16px;background:#c62828;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:14px;margin-left:8px;">&#x2715;
+                Close</button>
+        </div>
+    </div>
+
+    {% set d = form_data %}
+    {% macro v(key, fallback='________________') %}{{ d.get(key, '') or fallback }}{% endmacro %}
+    {% macro chk(key) %}{{ '&#9745;' if d.get(key) in ['true', 'on', True] else '&#9744;' }}{% endmacro %}
+    {% macro rv(key) %}{{ d.get(key, '') or '&mdash;' }}{% endmacro %}
+    {% macro img_v(key, alt_text='Photo') %}
+    {% if d.get(key) and d.get(key).startswith('data:image') %}
+    <br><img src="{{ d.get(key) }}" alt="{{ alt_text }}"
+        style="max-height: 100px; max-width: 100px; border: 1px solid #777; border-radius: 4px; margin-top: 5px;">
+    {% else %}
+    <br><span style="color: #777; font-size: 10px;">(No Photo)</span>
+    {% endif %}
+    {% endmacro %}
+
+    <!-- ===== PAGE 1 ===== -->
+    <div class="page page1-container">
+        <div class="student-photo-box">
+            {% if d.get('photoInput') and d.get('photoInput').startswith('data:image') %}
+            <img src="{{ d.get('photoInput') }}" alt="Student Photo">
+            {% else %}
+            <span>Affix photograph here</span>
+            {% endif %}
+        </div>
+
+        <div class="hdr" style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" style="width: 80px; height: 80px;">
+            <div style="text-align: center;">
+                <h1>Prathyusha Engineering College</h1>
+                <p><b>AN AUTONOMOUS INSTITUTION</b> | ARANVOYALKUPPAM, POONAMALLEE, TIRUVALLUR-602 025.</p>
+                <p>PHONE 044-37673767 | www.prathyusha.edu.in | admission@prathyusha.edu.in</p>
+                <p><u><b>APPLICATION FORM</b></u> &mdash; First Year &amp; Lateral Entry B.E/B.TECH</p>
+            </div>
+        </div>
+
+        <table>
+            <tr>
+                <td><b>Application No.:</b> {{ app_no or v('appNoSearch') }}</td>
+                <td>
+                    {{ chk('prog_CSE') }} CSE &nbsp;
+                    {{ chk('prog_ECE') }} ECE &nbsp;
+                    {{ chk('prog_AIDS') }} AI&amp;DS &nbsp;
+                    {{ chk('prog_CSBS') }} CSBS &nbsp;
+                    {{ chk('prog_MECH') }} MECH
+                </td>
+            </tr>
+        </table>
+
+        <h3>1. Student Name: {{ v('student_name') }}</h3>
+
+        <h3>2(a). Parent Details</h3>
+        <table>
+            <tr>
+                <th></th>
+                <th>Father</th>
+                <th>Mother</th>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td>{{ v('father_name') }}</td>
+                <td>{{ v('mother_name') }}</td>
+            </tr>
+            <tr>
+                <th>Qualification</th>
+                <td>{{ v('father_qual') }}</td>
+                <td>{{ v('mother_qual') }}</td>
+            </tr>
+            <tr>
+                <th>Occupation</th>
+                <td>{{ v('father_occupation') }}</td>
+                <td>{{ v('mother_occupation') }}</td>
+            </tr>
+            <tr>
+                <th>Annual Income</th>
+                <td>{{ v('father_income') }}</td>
+                <td>{{ v('mother_income') }}</td>
+            </tr>
+            <tr>
+                <th>Mobile</th>
+                <td>{{ v('father_mobile') }}</td>
+                <td>{{ v('mother_mobile') }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ v('father_email') }}</td>
+                <td>{{ v('mother_email') }}</td>
+            </tr>
+        </table>
+
+        <h3>2(b). Guardian Details</h3>
+        <table>
+            <tr>
+                <th>Name</th>
+                <td>{{ v('guardian_name') }}</td>
+                <th>Qualification</th>
+                <td>{{ v('guardian_qual') }}</td>
+            </tr>
+            <tr>
+                <th>Occupation</th>
+                <td>{{ v('guardian_occ') }}</td>
+                <th>Mobile</th>
+                <td>{{ v('guardian_mobile') }}</td>
+            </tr>
+        </table>
+
+        <h3>3. Address</h3>
+        <table>
+            <tr>
+                <th>Details</th>
+                <th>Present</th>
+                <th>Permanent</th>
+            </tr>
+            <tr>
+                <th>Door No.</th>
+                <td>{{ v('addr_door_p') }}</td>
+                <td>{{ v('addr_door_perm') }}</td>
+            </tr>
+            <tr>
+                <th>Street</th>
+                <td>{{ v('addr_street') }}</td>
+                <td>{{ v('addr_street_perm') }}</td>
+            </tr>
+            <tr>
+                <th>Place</th>
+                <td>{{ v('addr_place_p') }}</td>
+                <td>{{ v('addr_place_perm') }}</td>
+            </tr>
+            <tr>
+                <th>Taluk</th>
+                <td>{{ v('addr_taluk_p') }}</td>
+                <td>{{ v('addr_taluk_perm') }}</td>
+            </tr>
+            <tr>
+                <th>District</th>
+                <td>{{ v('addr_dist_p') }}</td>
+                <td>{{ v('addr_dist_perm') }}</td>
+            </tr>
+            <tr>
+                <th>Pin Code</th>
+                <td>{{ v('addr_pin_p') }}</td>
+                <td>{{ v('addr_pin_perm') }}</td>
+            </tr>
+            <tr>
+                <th>State</th>
+                <td>{{ v('addr_state_p') }}</td>
+                <td>{{ v('addr_state_perm') }}</td>
+            </tr>
+            <tr>
+                <th>Mobile</th>
+                <td>{{ v('addr_mob_p') }}</td>
+                <td>{{ v('addr_mob_perm') }}</td>
+            </tr>
+        </table>
+
+        <h3>Student Details (Items 4–19)</h3>
+        <table>
+            <tr>
+                <th>4. Gender</th>
+                <td>{{ rv('gender') }}</td>
+                <th>5. DOB</th>
+                <td>{{ v('dob') or v('candDob') or v('dob_input') }}</td>
+            </tr>
+            <tr>
+                <th>Candidate Email</th>
+                <td>{{ v('email') or v('father_email') }}</td>
+                <th>Candidate Mobile</th>
+                <td>{{ v('mobile') or v('father_mobile') or v('mobileNo') }}</td>
+            </tr>
+            <tr>
+                <th>6. Place of Birth</th>
+                <td>{{ v('place_of_birth') }}</td>
+                <th>7. Blood Group</th>
+                <td>{{ v('blood_group') }}</td>
+            </tr>
+            <tr>
+                <th>8. Mother Tongue</th>
+                <td>{{ v('mother_tongue') }}</td>
+                <th>9. Civic Status</th>
+                <td>{{ rv('civic') }}</td>
+            </tr>
+            <tr>
+                <th>10. Aadhar No.</th>
+                <td>{{ v('aadhar_no') }}</td>
+                <th>11. Citizenship</th>
+                <td>{{ rv('citizenship') }}</td>
+            </tr>
+            <tr>
+                <th>12. Passport No.</th>
+                <td>{{ v('passport_no') }}</td>
+                <th>13. Religion</th>
+                <td>{{ v('religion') }}</td>
+            </tr>
+            <tr>
+                <th>14. Caste</th>
+                <td>{{ v('caste_name') }}</td>
+                <th>16. No. of Appearances</th>
+                <td>{{ rv('appearances_one') }}</td>
+            </tr>
+            <tr>
+                <th>17. TNEA Ranking</th>
+                <td>{{ v('tnea_ranking') }}</td>
+                <th>Consortium Ranking</th>
+                <td>{{ v('consortium_ranking') }}</td>
+            </tr>
+            <tr>
+                <th>19. Hosteller/Day Scholar</th>
+                <td>{{ rv('hosteller') }}</td>
+                <th>Food</th>
+                <td>{{ rv('food') }}</td>
+            </tr>
+            <tr>
+                <th>Boarding Point</th>
+                <td colspan="3">{{ v('boarding_point') }}</td>
+            </tr>
+        </table>
+        <p>
+            <b>Extra Curricular:</b>
+            {{ chk('activity_sports') }} Sports &nbsp;
+            {{ chk('activity_irc') }} IRC &nbsp;
+            {{ chk('activity_ncc') }} NCC &nbsp;
+            {{ chk('activity_nss') }} NSS &nbsp;
+            {{ chk('activity_dance') }} Dance &nbsp;
+            {{ chk('activity_finearts') }} Fine Arts
+        </p>
+        <p><b>Govt. Category:</b>
+            {{ chk('govt_category_sports') }} Sports &nbsp;
+            {{ chk('govt_category_exservicemen') }} Ex-Servicemen &nbsp;
+            {{ chk('govt_category_community') }} Community &nbsp;
+            {{ chk('govt_category_opencategory') }} Open &nbsp;
+            {{ chk('govt_category_7_5_quota') }} 7.5% Quota
+        </p>
+    </div>
+
+    <!-- ===== PAGE 2 ===== -->
+    <div class="page">
+        <div class="hdr">
+            <h1>Prathyusha Engineering College</h1>
+            <p><b>AN AUTONOMOUS INSTITUTION</b> | TIRUVALLUR-602 025 | <u>APPLICATION FORM</u></p>
+        </div>
+
+        <h3>20(a). School of Study</h3>
+        <table>
+            <tr>
+                <th>Class</th>
+                <th>Reg. No</th>
+                <th>Year</th>
+                <th>Medium</th>
+                <th>School</th>
+                <th>City</th>
+                <th>State</th>
+                <th>App.</th>
+                <th>Marks%</th>
+            </tr>
+            <tr>
+                <td>X Std</td>
+                <td>{{ v('p2_x_regno') }}</td>
+                <td>{{ v('p2_x_year') }}</td>
+                <td>{{ v('p2_x_medium') }}</td>
+                <td>{{ v('p2_x_school') }}</td>
+                <td>{{ v('p2_x_city') }}</td>
+                <td>{{ v('p2_x_state') }}</td>
+                <td>{{ v('p2_x_appear') }}</td>
+                <td>{{ v('p2_x_marks') }}</td>
+            </tr>
+            <tr>
+                <td>HSC</td>
+                <td>{{ v('p2_hsc_regno') }}</td>
+                <td>{{ v('p2_hsc_year') }}</td>
+                <td>{{ v('p2_hsc_medium') }}</td>
+                <td>{{ v('p2_hsc_school') }}</td>
+                <td>{{ v('p2_hsc_city') }}</td>
+                <td>{{ v('p2_hsc_state') }}</td>
+                <td>{{ v('p2_hsc_appear') }}</td>
+                <td>{{ v('p2_hsc_marks') }}</td>
+            </tr>
+            <tr>
+                <td>Diploma</td>
+                <td>{{ v('p2_dip_regno') }}</td>
+                <td>{{ v('p2_dip_year') }}</td>
+                <td>{{ v('p2_dip_medium') }}</td>
+                <td>{{ v('p2_dip_school') }}</td>
+                <td>{{ v('p2_dip_city') }}</td>
+                <td>{{ v('p2_dip_state') }}</td>
+                <td>{{ v('p2_dip_appear') }}</td>
+                <td>{{ v('p2_dip_marks') }}</td>
+            </tr>
+        </table>
+
+        <h3>20(b). HSC Academic Marks</h3>
+        <table>
+            <tr>
+                <th>Subject</th>
+                <th>Month &amp; Year</th>
+                <th>Max</th>
+                <th>Obtained</th>
+            </tr>
+            <tr>
+                <td>Physics</td>
+                <td>{{ v('p2_phy_month') }}</td>
+                <td>{{ v('p2_phy_max') }}</td>
+                <td>{{ v('p2_phy_obt') }}</td>
+            </tr>
+            <tr>
+                <td>Chemistry</td>
+                <td>{{ v('p2_chem_month') }}</td>
+                <td>{{ v('p2_chem_max') }}</td>
+                <td>{{ v('p2_chem_obt') }}</td>
+            </tr>
+            <tr>
+                <td>Mathematics</td>
+                <td>{{ v('p2_math_month') }}</td>
+                <td>{{ v('p2_math_max') }}</td>
+                <td>{{ v('p2_math_obt') }}</td>
+            </tr>
+            <tr>
+                <td colspan="3"><b>Total Cutoff</b></td>
+                <td><b>{{ v('p2_acad_total_cutoff') }}</b></td>
+            </tr>
+        </table>
+
+        <h3>20(c). HSC Vocational Marks</h3>
+        <table>
+            <tr>
+                <th>Subject</th>
+                <th>Month &amp; Year</th>
+                <th>Max</th>
+                <th>Obtained</th>
+            </tr>
+            <tr>
+                <td>Related Subjects I</td>
+                <td>{{ v('p2_voc_rs1_month') }}</td>
+                <td>{{ v('p2_voc_rs1_max') }}</td>
+                <td>{{ v('p2_voc_rs1_obt') }}</td>
+            </tr>
+            <tr>
+                <td>Related Subjects II</td>
+                <td>{{ v('p2_voc_rs2_month') }}</td>
+                <td>{{ v('p2_voc_rs2_max') }}</td>
+                <td>{{ v('p2_voc_rs2_obt') }}</td>
+            </tr>
+            <tr>
+                <td>Vocational Theory</td>
+                <td>{{ v('p2_voc_theory_month') }}</td>
+                <td>{{ v('p2_voc_theory_max') }}</td>
+                <td>{{ v('p2_voc_theory_obt') }}</td>
+            </tr>
+            <tr>
+                <td>Practical I</td>
+                <td>{{ v('p2_voc_p1_month') }}</td>
+                <td>{{ v('p2_voc_p1_max') }}</td>
+                <td>{{ v('p2_voc_p1_obt') }}</td>
+            </tr>
+            <tr>
+                <td>Practical II</td>
+                <td>{{ v('p2_voc_p2_month') }}</td>
+                <td>{{ v('p2_voc_p2_max') }}</td>
+                <td>{{ v('p2_voc_p2_obt') }}</td>
+            </tr>
+            <tr>
+                <td colspan="3"><b>Total Cutoff</b></td>
+                <td><b>{{ v('p2_voc_total_cutoff') }}</b></td>
+            </tr>
+        </table>
+
+        <h3>20(d). Diploma Lateral Entry</h3>
+        <table>
+            <tr>
+                <th>Sem</th>
+                <th>Month &amp; Year</th>
+                <th>Max</th>
+                <th>Obtained</th>
+                <th>%</th>
+            </tr>
+            {% for sem in ['1','2','3','4','5','6'] %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ v('p2_le_s'~sem~'_month') }}</td>
+                <td>{{ v('p2_le_s'~sem~'_max') }}</td>
+                <td>{{ v('p2_le_s'~sem~'_obt') }}</td>
+                <td>{{ v('p2_le_s'~sem~'_pct') }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="4"><b>Total %</b></td>
+                <td><b>{{ v('p2_le_total_pct') }}</b></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ===== PAGE 3 ===== -->
+    <div class="page">
+        <div class="hdr">
+            <h1>Prathyusha Engineering College</h1>
+            <p><b>AN AUTONOMOUS INSTITUTION</b> | TIRUVALLUR-602 025 | <u>APPLICATION FORM</u></p>
+        </div>
+
+        <h3>21. Scholarship Details</h3>
+        <table>
+            <tr>
+                <th>Scholarship Name</th>
+                <th>Yes/No</th>
+                <th>Eligibility</th>
+                <th>Income Limit</th>
+            </tr>
+            <tr>
+                <td>First Generation Graduate (Govt. Quota)</td>
+                <td>{{ rv('first_graduate') }}</td>
+                <td>e-Certificate only</td>
+                <td>Not Applicable</td>
+            </tr>
+            <tr>
+                <td>General Scholarship (BC/MBC/SC/ST)</td>
+                <td>&mdash;</td>
+                <td>BC/MBC/SC/ST</td>
+                <td>2.5 Lakh/PA</td>
+            </tr>
+            <tr>
+                <td>Post Matric Scholarship (GQ/MQ)</td>
+                <td>{{ rv('scholarship') }}</td>
+                <td>SC/ST/SCA/SCC</td>
+                <td>2.5 Lakh/PA</td>
+            </tr>
+        </table>
+
+        <h3>22. Local Guardian / Contact Photos</h3>
+        <table>
+            <tr>
+                <th>Local Guardian Name</th>
+                <td>{{ v('local_guardian_name') }}</td>
+                <th>Father Phone &amp; Photo</th>
+                <td style="text-align: center;">
+                    {{ v('father_photo_phone') }}
+                    {{ img_v('father_photo') }}
+                </td>
+            </tr>
+            <tr>
+                <th>Mother Phone &amp; Photo</th>
+                <td style="text-align: center;">
+                    {{ v('mother_photo_phone') }}
+                    {{ img_v('mother_photo') }}
+                </td>
+                <th>Guardian Phone &amp; Photo</th>
+                <td style="text-align: center;">
+                    {{ v('guardian_photo_phone') }}
+                    {{ img_v('guardian_photo') }}
+                </td>
+            </tr>
+        </table>
+
+        <h3>FOR OFFICE USE</h3>
+        <table>
+            <tr>
+                <th>Admission No.</th>
+                <td>{{ v('office_admission_no') }}</td>
+                <th>Course Allotted</th>
+                <td>{{ v('office_course_allotted') }}</td>
+            </tr>
+            <tr>
+                <th>Stay</th>
+                <td>{{ rv('stay') }}</td>
+                <th>Verified By</th>
+                <td>{{ v('office_verified_by') }}</td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <th>Scholarship</th>
+                <th>Caste</th>
+                <th>Income</th>
+                <th>Eligible/Not</th>
+            </tr>
+            <tr>
+                <td>First Generation Graduate</td>
+                <td>{{ v('office_sch1_caste') }}</td>
+                <td>{{ v('office_sch1_income') }}</td>
+                <td>{{ v('office_sch1_eligible') }}</td>
+            </tr>
+            <tr>
+                <td>Post Matric Scholarship</td>
+                <td>{{ v('office_sch2_caste') }}</td>
+                <td>{{ v('office_sch2_income') }}</td>
+                <td>{{ v('office_sch2_eligible') }}</td>
+            </tr>
+        </table>
+
+        <div class="sig-row" style="margin-top: 20px;">
+            <div class="sig-box">
+                <div class="sig-line">Verified By<br>
+                    <small>{{ v('office_verified_by') }}</small>
+                </div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line">Office Signature<br>
+                    {{ img_v('office_verified_sign', 'Office Signature') }}
+                </div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line">Signature of Principal<br>
+                    {{ img_v('principal_sign', 'Principal Signature') }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PAGE 4 ===== -->
+    <div class="page">
+        <div class="hdr">
+            <h1>Prathyusha Engineering College</h1>
+            <p><b>AN AUTONOMOUS INSTITUTION</b> | TIRUVALLUR-602 025 | <u>APPLICATION FORM</u></p>
+        </div>
+
+        <h2>Certificates to be Enclosed</h2>
+        <p>Submit 3 sets of Xerox copies. Originals must be produced at time of admission.</p>
+        <ol>
+            <li>10th / SSC / H.S Vocational / Diploma Certificate</li>
+            <li>HSC or Intermediate</li>
+            <li>Transfer Certificate</li>
+            <li>Conduct Certificate</li>
+            <li>Community Certificate (e-Certificate)</li>
+            <li>Extra Curricular Activities Certificate (if any)</li>
+            <li>General Rank Card (Consortium or A.U.)</li>
+            <li>Anna University Allotment Order with Payment Receipt (Single Window only)</li>
+            <li>Medical Fitness Certificate with Blood Group</li>
+            <li>Migration Certificate (for non-TN students)</li>
+            <li>Eligibility Certificate (for other state students)</li>
+            <li>5 Recent Passport Size Photos (Name &amp; Dept written on back)</li>
+            <li>First Graduate: (i) First Graduate Certificate &nbsp; (ii) Joint Declaration Form &nbsp; (iii) Nativity
+                Certificate</li>
+        </ol>
+        <h3>Achievements / Awards:</h3>
+        <p style="border:1px solid #000; min-height:80px; padding:8px;">{{ v('achievements_awards', '&mdash;') }}</p>
+    </div>
+
+    <!-- ===== PAGE 5 ===== -->
+    <div class="page">
+        <div class="hdr">
+            <h1>Prathyusha Engineering College</h1>
+            <p><b>AN AUTONOMOUS INSTITUTION</b> | TIRUVALLUR-602 025 | <u>APPLICATION FORM</u></p>
+        </div>
+
+        <h2>Details of First Graduate in Family</h2>
+        <table>
+            <tr>
+                <th>(a) First graduate in family in College</th>
+                <td>{{ rv('first_graduate') }}</td>
+            </tr>
+            <tr>
+                <th>(b) Brother/Sister availed First Graduate fee concession previously</th>
+                <td>{{ rv('brother_sister') }}</td>
+            </tr>
+            <tr>
+                <th>(2) Willing to avail Post Matric Scholarship Scheme (SC/SCA/ST/Converted Christians)</th>
+                <td>{{ rv('scholarship') }}</td>
+            </tr>
+        </table>
+        <p><b>Eligibility for PMSS &mdash; Annual Income Limit:</b> SC/SCA/ST/BC Converted Christians: Rs. 2,50,000/-
+        </p>
+    </div>
+
+    <!-- ===== PAGE 6 ===== -->
+    <div class="page">
+        <div class="hdr">
+            <h1>Prathyusha Engineering College</h1>
+            <p><b>AN AUTONOMOUS INSTITUTION</b> | TIRUVALLUR-602 025 | <u>APPLICATION FORM</u></p>
+        </div>
+
+        <h2>Joint Declaration by the Applicant and Parent</h2>
+        <p>We hereby solemnly and sincerely affirm that the statements made and the information furnished by me in the
+            application are true. Should it be found that any information is untrue, I am liable for criminal
+            prosecution and agree to forfeit the seat. I also affirm:</p>
+        <ol>
+            <li>My son/daughter/ward will strictly adhere to all rules and regulations of the institution hereafter.
+            </li>
+            <li>I am aware that a minimum of 75% attendance is required to sit for University Examinations.</li>
+            <li>My son/daughter/ward will follow the syllabus in force at the time of admission.</li>
+            <li>Scholarships or concessions may be cancelled if special progress is not shown or conduct is not good.
+            </li>
+            <li>Breach of discipline and rules will entail summary forfeiture of seat in the Institution.</li>
+            <li>I agree to abide by all the rules and regulations of the college.</li>
+            <li>I agree to pay the fees fixed by the Government for self Financing Colleges.</li>
+            <li>No refund of fees if student discontinues studies during the middle of the Semester.</li>
+            <li>I agree that I will not participate in the ragging of students.</li>
+            <li>I will strictly comply with the dress code of the college.</li>
+            <li>I will not use cell phone in class rooms and laboratory classes during college hours.</li>
+        </ol>
+        <p>We are fully aware of the declaration and agree to the above conditions.</p>
+
+        <table style="margin-top: 16px;">
+            <tr>
+                <th>Place</th>
+                <td>Aranvoyalkuppam, Thiruvallur</td>
+                <th>Date</th>
+                <td>{{ v('date') }}</td>
+            </tr>
+        </table>
+        <div class="sig-row">
+            <div class="sig-box">
+                <div class="sig-line">Signature of the Applicant<br>
+                    <small>{{ v('applicant-sign', '') }}</small><br>
+                    {{ img_v('signFileApplicant', 'Applicant Signature') }}
+                </div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line">Signature of the Parent / Guardian<br>
+                    <small>{{ v('parent-sign', '') }}</small><br>
+                    {{ img_v('signFileParent', 'Parent Signature') }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PAGE 7 ===== -->
+    <div class="page">
+        <div class="hdr">
+            <h1>Prathyusha Engineering College</h1>
+            <p><b>AN AUTONOMOUS INSTITUTION</b> | TIRUVALLUR-602 025 | <u>APPLICATION FORM</u></p>
+        </div>
+
+        <div style="border:1px solid #222; margin-bottom:24px; padding:20px; border-radius:6px; background:#e4f2fb;">
+            <h2>OUR VISION</h2>
+            <p>To emerge as a premier Technical, Engineering and Management Institution in the country by imparting
+                Quality Education and thus facilitate our students to blossom into dynamic professionals so that they
+                play a vital role for the progress of the nation and for a peaceful co-existence of our fellow human
+                beings.</p>
+            <div style="text-align:right; margin-top:16px;"><b>P. Raja Rao</b><br>Chairman</div>
+        </div>
+        <div style="border:1px solid #222; padding:20px; border-radius:6px; background:#e4f2fb;">
+            <h2>OUR MISSION</h2>
+            <p>Prathyusha Engineering College will strive to emerge as a premier Institution in the country by:</p>
+            <ul>
+                <li>Providing State-of-the-art infrastructure facilities</li>
+                <li>Imparting Quality education and Training through qualified, experienced and committed members of the
+                    faculty</li>
+                <li>Empowering the youth by providing professional leadership</li>
+                <li>Developing centers of Excellence in frontier areas of Engineering, Technology and Management</li>
+                <li>Networking with Industry, Corporate and Research organizations</li>
+                <li>Promoting Institute-Industry Partnership for the peace and prosperity of the nation</li>
+            </ul>
+            <div style="text-align:right; margin-top:16px;"><b>P. Raja Rao</b><br>Chairman</div>
+        </div>
+
+        <div class="sig-row">
+            <div class="sig-box">
+                <div class="sig-line">Signature of Student<br>
+                    {{ img_v('signFileApplicant', 'Applicant Signature') }}
+                </div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line">Signature of Parent / Guardian<br>
+                    {{ img_v('signFileParent', 'Parent Signature') }}
+                </div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line">Signature of Principal<br>
+                    {{ img_v('principal_sign', 'Principal Signature') }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="print-bar" style="display:flex; gap:16px; justify-content:center; align-items:center;">
+        <a href="/download_application_pdf/{{ app_no }}" target="_blank"
+            style="padding:12px 30px;font-size:16px;background:#2e7d32;color:#fff;border:none;border-radius:8px;cursor:pointer;text-decoration:none;font-weight:bold;">&#128462;
+            Download Application Form (PDF)</a>
+        <button onclick="window.print()"
+            style="padding:12px 30px;font-size:16px;background:#1565c0;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">&#128424;
+            Print / Save as PDF &mdash; All 7 Pages</button>
+    </div>
+
+</body>
+
+</html>

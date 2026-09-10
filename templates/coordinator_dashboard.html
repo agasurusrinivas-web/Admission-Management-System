@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coordinator Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="flex bg-gray-100 h-screen overflow-hidden">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-[#170606] text-white min-h-screen flex flex-col justify-between fixed h-full z-10">
+    <div>
+      <nav>
+        <ul>
+          <li class="px-6 py-3 hover:bg-indigo-700 cursor-pointer" onclick="showSection('dashboard')">Dashboard</li>
+          <li class="px-6 py-3 hover:bg-indigo-700 cursor-pointer" onclick="showSection('students')">Students</li>
+          <li class="px-6 py-3 hover:bg-indigo-700 cursor-pointer">
+            <a href="{{ url_for('application_form') }}">Application Form</a>
+          </li>
+          <li class="px-6 py-3 hover:bg-indigo-700 cursor-pointer">
+            <a href="{{ url_for('conform_application', page='first.html') }}" target="_blank">Conform Application
+              Form</a>
+          </li>
+          <li class="px-6 py-3 hover:bg-indigo-700 cursor-pointer" onclick="showSection('feedback')">Feedback</li>
+        </ul>
+      </nav>
+    </div>
+    <div class="px-6 py-3 hover:bg-indigo-700 cursor-pointer" onclick="showSection('profile')">Profile</div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="flex-1 flex flex-col ml-64 h-full">
+    <!-- Top Navigation -->
+    <header class="bg-[#B20808] text-white px-6 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold" id="headerTitle">Coordinator Dashboard</h1>
+      <div class="flex items-center space-x-4">
+        <div class="relative">
+          <button onclick="toggleNotificationDropdown()" class="relative">
+            🔔
+            <span id="notificationCount"
+              class="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-1 rounded-full">0</span>
+          </button>
+          <div id="notificationDropdown"
+            class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg overflow-hidden z-50">
+            <ul id="notificationListDropdown" class="p-2 list-disc list-inside text-gray-700"></ul>
+          </div>
+        </div>
+        <button onclick="window.location.href='{{ url_for('logout') }}'"
+          class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+      </div>
+    </header>
+
+    <main class="flex-1 p-6 overflow-y-auto">
+      <!-- Dashboard Section -->
+      <div id="dashboardSection">
+        <h2 class="text-xl font-bold mb-4">Dashboard Overview</h2>
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          <div class="bg-white shadow rounded-lg p-6" style="width: 300px; height: 190px;">
+            <h3 class="font-bold">Total Admissions</h3>
+            <p id="totalAdmissions" class="text-2xl mt-2">0</p>
+          </div>
+          <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white shadow rounded-lg p-6"
+              style="margin-left: -300px; margin-right: 300px; padding-bottom: 100px; width: 300px;">
+              <h3 class="font-bold">Visited</h3>
+              <p id="totalVisited" class="text-2xl mt-2">0</p>
+            </div>
+            <div class="bg-white shadow rounded-lg p-6" style="width: 300px; margin-left: -280px;">
+              <h3 class="font-bold">Notifications</h3>
+              <ul id="notificationList" class="mt-2 list-disc list-inside text-gray-700"></ul>
+            </div>
+          </div>
+          <div class="bg-white shadow rounded-lg p-6 flex items-center justify-between max-w-xl">
+            <div class="flex flex-col">
+              <p><strong>Name:</strong> {{ coordinator_data['first_name'] }} {{ coordinator_data['last_name'] }}</p>
+              <p><strong>Email:</strong> {{ coordinator_data['email'] }}</p>
+              <p><strong>Phone:</strong> {{ coordinator_data['phone'] }}</p>
+              <p style="margin-top:6px;color:#666;font-size:13px"><strong>Department:</strong> {{
+                coordinator_data['work']
+                }}</p>
+            </div>
+            <div class="flex flex-col items-center">
+              <img src="{{ coordinator_data['photo'] or 'https://via.placeholder.com/100' }}" alt="Coordinator Photo"
+                class="rounded-full w-24 h-24 object-cover" id="hi">
+              <div style="font-size:13px;color:#666;margin-top:6px">Profile Photo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students Section -->
+      <div id="students" style="display:none;">
+        <h2 class="text-xl font-bold mb-4">My Students</h2>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          <input type="date" id="startDate" class="px-4 py-2 border rounded-md">
+          <input type="date" id="endDate" class="px-4 py-2 border rounded-md">
+          <label class="flex items-center space-x-2">
+            <input type="checkbox" id="pieChartOption">
+            <span>Show Pie Chart by Department</span>
+          </label>
+          <button id="downloadExcelBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Download
+            Excel</button>
+          <button id="downloadPdfBtn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Download
+            PDF</button>
+        </div>
+
+        <!-- Department Pie Chart Container -->
+        <div id="coordPieChartContainer" class="hidden bg-white shadow rounded-lg p-6 mb-6">
+          <h3 class="text-lg font-bold text-gray-800 mb-2">Department-wise Student Distribution</h3>
+          <div id="coordPieChartCanvasWrapper"
+            style="position: relative; height: 280px; max-width: 500px; margin: 0 auto;">
+            <canvas id="coordDeptPieChart"></canvas>
+          </div>
+          <div id="coordPieChartEmptyMsg" class="hidden text-center text-gray-500 py-6">No department data available.
+          </div>
+        </div>
+
+        <input type="text" id="searchStudent" placeholder="Search by student name or application no"
+          class="px-4 py-2 border rounded w-full mb-4" onkeyup="searchStudent()">
+
+        <div class="bg-white shadow rounded-lg overflow-auto">
+          <table class="min-w-full">
+            <thead class="bg-gray-100 text-gray-600 uppercase text-sm">
+              <tr>
+                <th class="py-3 px-4">Application No</th>
+                <th class="py-3 px-4">Student Name</th>
+                <th class="py-3 px-4">Department</th>
+                <th class="py-3 px-4">Mobile</th>
+                <th class="py-3 px-4">Address</th>
+                <th class="py-3 px-4">Next College Visit</th>
+                <th class="py-3 px-4">Action</th>
+              </tr>
+            </thead>
+            <tbody id="studentTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+
+      <!-- Feedback Section -->
+      <div id="feedback" style="display:none;">
+        <h2 class="text-xl font-bold mb-4">Feedback</h2>
+        <div class="bg-white shadow rounded-lg p-6 max-w-lg mb-6">
+          <form id="feedbackForm" class="space-y-4">
+            <div>
+              <label class="block text-gray-700 mb-1">Application Number</label>
+              <select id="appNoInput" class="w-full px-4 py-2 border rounded-md" required></select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">Feedback</label>
+              <textarea id="feedbackInput" placeholder="Enter feedback..." class="w-full px-4 py-2 border rounded-md"
+                rows="4" required></textarea>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">Next College Visit Date</label>
+              <input type="date" id="visitDateInput" class="w-full px-4 py-2 border rounded-md">
+            </div>
+            <div class="text-center">
+              <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                Save Feedback
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-4 max-w-2xl">
+          <table class="min-w-full">
+            <thead class="bg-gray-100 text-gray-600 uppercase text-sm">
+              <tr>
+                <th class="py-3 px-4">Application No</th>
+                <th class="py-3 px-4">Feedback</th>
+                <th class="py-3 px-4">Next Visit</th>
+              </tr>
+            </thead>
+            <tbody id="feedbackTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Profile Section -->
+      <div id="profile" style="display:none;">
+        <h2 class="text-xl font-bold mb-4">Profile</h2>
+        <div class="bg-white shadow rounded-lg p-8 max-w-lg">
+          <div class="flex flex-col items-center mb-6">
+            <img id="photoPreview" src="{{ coordinator_data['photo'] or 'https://via.placeholder.com/150' }}"
+              class="rounded-full w-32 h-32 object-cover mb-2">
+            <label for="profilePhoto" class="cursor-pointer text-blue-600">Change Photo</label>
+            <input type="file" id="profilePhoto" class="hidden" accept="image/*">
+          </div>
+          <form id="profileForm" class="space-y-4">
+            <div>
+              <label class="block text-gray-700 mb-1">Name</label>
+              <input type="text" id="profileName"
+                value="{{ coordinator_data['first_name'] }} {{ coordinator_data['last_name'] }}"
+                class="w-full px-4 py-2 border rounded-md">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">Email</label>
+              <input type="email" id="profileEmail" value="{{ coordinator_data['email'] }}" readonly
+                class="w-full px-4 py-2 border rounded-md bg-gray-100 cursor-not-allowed">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">Phone</label>
+              <input type="text" id="profilePhone" value="{{ coordinator_data['phone'] }}"
+                class="w-full px-4 py-2 border rounded-md">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">Department</label>
+              <input type="text" id="profileDept" value="{{ coordinator_data['work'] }}"
+                class="w-full px-4 py-2 border rounded-md">
+            </div>
+            <div class="text-center">
+              <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Save
+                Profile</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+
+
+  <script>
+    let students = [];
+    let feedbacks = [];
+
+    function showSection(section) {
+      const sections = ['dashboardSection', 'students', 'feedback', 'profile'];
+      sections.forEach(sec => document.getElementById(sec).style.display = 'none');
+      const sectionMap = { 'dashboard': 'dashboardSection', 'students': 'students', 'feedback': 'feedback', 'profile': 'profile' };
+      document.getElementById(sectionMap[section]).style.display = 'block';
+    }
+
+    function toggleNotificationDropdown() {
+      document.getElementById("notificationDropdown").classList.toggle("hidden");
+    }
+
+    async function loadStudents() {
+      const res = await fetch('/get_coordinator_applications');
+      const data = await res.json();
+      students = data.applications || [];
+      populateFeedbackDropdown();
+      renderStudents();
+      renderFeedback();
+
+      // If no data, show message
+      if (!students || students.length === 0) {
+        const tbody = document.getElementById('studentTableBody');
+        tbody.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-gray-600">No data found</td></tr>`;
+      }
+
+      // highlight newly saved application (if coming from form)
+      const lastApp = sessionStorage.getItem('lastAppNumber');
+      if (lastApp) {
+        setTimeout(() => {
+          const rows = document.querySelectorAll('#studentTableBody tr');
+          rows.forEach(row => {
+            if (row.cells[0].textContent.trim() === String(lastApp).trim()) {
+              row.style.backgroundColor = '#FFFBCC';
+              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          });
+          sessionStorage.removeItem('lastAppNumber');
+        }, 100);
+      }
+    }
+
+    function renderStudents(search = "") {
+      const tbody = document.getElementById('studentTableBody');
+      tbody.innerHTML = "";
+      const filtered = (students || []).filter(s => {
+        if (!s) return false;
+        const name = (s.student_name || "").toString().toLowerCase();
+        const app = (s.application_number || "").toString().toLowerCase();
+        const q = (search || "").toString().toLowerCase();
+        return name.includes(q) || app.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-gray-600">No data found</td></tr>`;
+      } else {
+        filtered.forEach(s => {
+          tbody.innerHTML += `<tr class="border-b">
+            <td class="py-2 px-4">${s.application_number || ""}</td>
+            <td class="py-2 px-4">${s.student_name || ""}</td>
+            <td class="py-2 px-4">${s.preferred_branch || ""}</td>
+            <td class="py-2 px-4">${s.mobile || "-"}</td>
+            <td class="py-2 px-4">${s.address || "-"}</td>
+            <td class="py-2 px-4">${s.next_visit || "-"}</td>
+            <td class="py-2 px-4">
+               <button class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                  onclick="viewApplication('${s.application_number}', '${s.status}')">
+                  View
+               </button>
+            </td>
+          </tr>`;
+        });
+      }
+      document.getElementById('totalAdmissions').innerText = (students || []).filter(s => s.status === 'confirmed').length;
+      document.getElementById('totalVisited').innerText = (students || []).filter(s => s.status === 'visited' || s.status === 'confirmed').length;
+      renderCoordDeptPieChart(filtered);
+    }
+
+    let coordPieChartInstance = null;
+
+    function renderCoordDeptPieChart(currentData) {
+      const checkbox = document.getElementById('pieChartOption');
+      const container = document.getElementById('coordPieChartContainer');
+      const canvasWrapper = document.getElementById('coordPieChartCanvasWrapper');
+      const emptyMsg = document.getElementById('coordPieChartEmptyMsg');
+
+      if (!checkbox || !checkbox.checked) {
+        if (container) container.classList.add('hidden');
+        return;
+      }
+
+      if (container) container.classList.remove('hidden');
+
+      const dataList = currentData || students || [];
+
+      const deptCounts = {};
+      dataList.forEach(s => {
+        let dept = (s.preferred_branch || 'Unassigned').toString().trim();
+        if (!dept) dept = 'Unassigned';
+        deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+      });
+
+      const labels = Object.keys(deptCounts);
+      const dataValues = Object.values(deptCounts);
+      const totalCount = dataValues.reduce((a, b) => a + b, 0);
+
+      if (totalCount === 0 || labels.length === 0) {
+        if (canvasWrapper) canvasWrapper.classList.add('hidden');
+        if (emptyMsg) emptyMsg.classList.remove('hidden');
+        if (coordPieChartInstance) {
+          coordPieChartInstance.destroy();
+          coordPieChartInstance = null;
+        }
+        return;
+      }
+
+      if (canvasWrapper) canvasWrapper.classList.remove('hidden');
+      if (emptyMsg) emptyMsg.classList.add('hidden');
+
+      const pieColors = ['#4f46e5', '#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#db2777', '#4b5563'];
+
+      if (coordPieChartInstance) {
+        coordPieChartInstance.destroy();
+        coordPieChartInstance = null;
+      }
+
+      const ctx = document.getElementById('coordDeptPieChart').getContext('2d');
+      coordPieChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: dataValues,
+            backgroundColor: pieColors.slice(0, labels.length)
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { font: { size: 12 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  const count = ctx.parsed || 0;
+                  const pct = totalCount ? Math.round((count / totalCount) * 100) : 0;
+                  return ` ${ctx.label}: ${count} student(s) (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function populateFeedbackDropdown() {
+      const select = document.getElementById('appNoInput');
+      select.innerHTML = "";
+      students.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.application_number;
+        opt.textContent = `${s.application_number} - ${s.student_name}`;
+        select.appendChild(opt);
+      });
+    }
+
+    document.getElementById("feedbackForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const appNo = document.getElementById("appNoInput").value;
+      const feedbackText = document.getElementById("feedbackInput").value;
+      const visitDate = document.getElementById("visitDateInput").value;
+
+      if (!appNo || !feedbackText) { alert("Enter Application No and Feedback"); return; }
+
+      await fetch('/save_feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ application_number: appNo, feedback: feedbackText, next_visit: visitDate })
+      });
+
+      const stu = students.find(s => s.application_number === appNo);
+      if (stu) {
+        stu.next_visit = visitDate || "---";
+        stu.feedback = feedbackText;
+      }
+      renderFeedback();
+      renderStudents();
+      this.reset();
+    });
+
+    function renderFeedback() {
+      const tbody = document.getElementById("feedbackTableBody");
+      tbody.innerHTML = "";
+      students.filter(s => s.feedback).forEach(f => {
+        tbody.innerHTML += `<tr class="border-b">
+          <td class="py-2 px-4">${f.application_number}</td>
+          <td class="py-2 px-4">${f.feedback}</td>
+          <td class="py-2 px-4">${f.next_visit || "---"}</td>
+        </tr>`;
+      });
+    }
+
+    document.getElementById("profileForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append('name', document.getElementById("profileName").value);
+      formData.append('phone', document.getElementById("profilePhone").value);
+      formData.append('work', document.getElementById("profileDept").value);
+
+      const photoInput = document.getElementById("profilePhoto");
+      if (photoInput.files && photoInput.files[0]) {
+        formData.append('photo', photoInput.files[0]);
+      }
+
+      try {
+        const res = await fetch('/api/coordinator/profile', {
+          method: 'POST',
+          body: formData
+        });
+        const result = await res.json();
+        if (result.success) {
+          alert("Profile updated successfully!");
+          if (result.photo) {
+            document.getElementById("photoPreview").src = result.photo;
+          }
+        } else {
+          alert("Error updating profile: " + result.error);
+        }
+      } catch (e) {
+        alert("Error: " + e);
+      }
+    });
+
+    window.onload = () => {
+      showSection('dashboard');
+      loadStudents();
+    };
+
+    // Date checks and download functionalities
+    async function checkData(start, end) {
+      const res = await fetch(`/check_data?start_date=${start}&end_date=${end}`);
+      if (!res.ok) return false;
+      const data = await res.json();
+      return data.count > 0;
+    }
+
+    // Add this function: fetch students optionally filtered by date
+    async function fetchStudents() {
+      await searchStudents();
+    }
+
+    // Guard attaching listeners (elements may not exist)
+    document.addEventListener('DOMContentLoaded', function () {
+      const startEl = document.getElementById("startDate");
+      const endEl = document.getElementById("endDate");
+      const downloadExcelBtn = document.getElementById("downloadExcelBtn");
+      const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+      const searchInput = document.getElementById('searchStudent');
+
+      // Load initial data
+      searchStudents();
+
+      if (startEl) startEl.addEventListener("change", fetchStudents);
+      if (endEl) endEl.addEventListener("change", fetchStudents);
+      if (downloadExcelBtn) downloadExcelBtn.addEventListener("click", async function () {
+        const startDate = startEl?.value; const endDate = endEl?.value;
+        if (!startDate || !endDate) { alert("Please select start and end dates."); return; }
+        const hasData = await checkData(startDate, endDate);
+        if (!hasData) { alert("No data found for the selected dates."); return; }
+        const chart = document.getElementById("pieChartOption")?.checked ? '1' : '0';
+        window.location.href = `/download_excel?start_date=${startDate}&end_date=${endDate}&chart=${chart}`;
+      });
+      if (downloadPdfBtn) downloadPdfBtn.addEventListener("click", async function () {
+        const startDate = startEl?.value; const endDate = endEl?.value;
+        if (!startDate || !endDate) { alert("Please select start and end dates."); return; }
+        const hasData = await checkData(startDate, endDate);
+        if (!hasData) { alert("No data found for the selected dates."); return; }
+        window.location.href = `/download_pdf?start_date=${startDate}&end_date=${endDate}`;
+      });
+      if (searchInput) searchInput.addEventListener('input', searchStudents);
+      const pieOpt = document.getElementById('pieChartOption');
+      if (pieOpt) pieOpt.addEventListener('change', () => renderCoordDeptPieChart());
+    });
+
+    // As-you-type search with backend API
+    async function searchStudents() {
+      const searchTerm = document.getElementById('searchStudent').value.trim();
+      try {
+        const response = await fetch(`/search_students?term=${encodeURIComponent(searchTerm)}`);
+        const data = await response.json();
+        const tbody = document.getElementById('studentTableBody');
+        tbody.innerHTML = '';
+
+        const rows = (data.students || []);
+        renderCoordDeptPieChart(rows);
+        if (rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-gray-600">No data found</td></tr>`;
+          document.getElementById('totalAdmissions').innerText = students.filter(s => s.status === 'confirmed').length;
+          return;
+        }
+
+        rows.forEach(student => {
+          tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-3 px-4">${student.application_number || ''}</td>
+                        <td class="py-3 px-4">${student.student_name || ''}</td>
+                        <td class="py-3 px-4">${student.preferred_branch || ''}</td>
+                        <td class="py-3 px-4">${student.mobile || '-'}</td>
+                        <td class="py-3 px-4">${student.address || '-'}</td>
+                        <td class="py-3 px-4 flex gap-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                                onclick="viewApplication('${student.application_number}', '${student.status || ''}')">
+                                View
+                            </button>
+                            <a href="/download_application_pdf/${student.application_number}" target="_blank"
+                                class="bg-indigo-600 text-white px-3 py-1 rounded text-sm hover:bg-indigo-700 inline-block font-semibold">
+                                Download PDF
+                            </a>
+                        </td>
+                `;
+        });
+        document.getElementById('totalAdmissions').innerText = rows.filter(s => s.status === 'confirmed').length;
+      } catch (error) {
+        console.error('Error searching students:', error);
+        const tbody = document.getElementById('studentTableBody');
+        tbody.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-red-600">Error fetching data</td></tr>`;
+      }
+    }
+
+    // Smart view: show confirm form if status=confirmed, else normal form
+    function viewApplication(appNumber, status) {
+      if (status === 'confirmed') {
+        window.open('/view_confirm_application?app_no=' + encodeURIComponent(appNumber), '_blank');
+      } else {
+        window.location.href = '/application_form?view=' + encodeURIComponent(appNumber);
+      }
+    }
+  </script>
+
+
+</html>
