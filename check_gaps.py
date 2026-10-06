@@ -1,10 +1,17 @@
 
 import mysql.connector
+import os
 
-DB_HOST = "localhost"
-DB_USER = "root" 
-DB_PASSWORD = "gummallajithendra06@" 
-DB_NAME = "project_db"
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_NAME = os.getenv("DB_NAME", "project_db")
 
 def check_sequence():
     conn = mysql.connector.connect(

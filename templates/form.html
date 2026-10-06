@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prathyusha Engineering College - Admission & Advance Booking Forms</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='PEC Logo.png') }}">
   <style>
     body {
       font-family: "Times New Roman", serif;
@@ -123,15 +124,93 @@
       max-width: 120px;
       margin-top: 5px;
     }
+
+    /* View-Only Mode Styles */
+    body.view-only-mode input:not([type="button"]):not([type="submit"]),
+    body.view-only-mode select,
+    body.view-only-mode textarea {
+      pointer-events: none !important;
+      background-color: #f8fafc !important;
+      color: #111827 !important;
+      border: 1px solid #d1d5db !important;
+      cursor: default !important;
+      user-select: text !important;
+    }
+    body.view-only-mode input[type="file"] {
+      display: none !important;
+    }
+    body.view-only-mode #saveBtn,
+    body.view-only-mode #saveBtnAdvance {
+      display: none !important;
+    }
+    .view-banner,
+    .edit-banner {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .edit-banner {
+      background: linear-gradient(135deg, #b45309, #d97706);
+    }
+    .view-banner button,
+    .edit-banner button {
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      padding: 6px 14px;
+      border: none;
+    }
+    @media print {
+      .view-banner,
+      .edit-banner {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 
-<body>
+<body class="{% if view_mode %}view-only-mode{% endif %}">
+
+  <div class="view-banner" id="viewModeBanner" style="display: {% if view_mode %}flex{% else %}none{% endif %};">
+    <div style="display: flex; align-items: center; gap: 10px; font-size: 14px;">
+      <span style="font-size: 20px;">👁️</span>
+      <span><strong>View-Only Mode:</strong> Viewing Application <strong id="bannerAppNo">{{ app_number }}</strong>. All fields are locked and editing is disabled.</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button type="button" onclick="window.print()" style="background: white; color: #1e3a8a;">
+        🖨️ Download PDF / Print
+      </button>
+      <button type="button" onclick="window.close(); if(!window.closed) window.location.href='/coordinator_dashboard';" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white;">
+        ✕ Close
+      </button>
+    </div>
+  </div>
+
+  <div class="edit-banner" id="editModeBanner" style="display: {% if edit_mode %}flex{% else %}none{% endif %};">
+    <div style="display: flex; align-items: center; gap: 10px; font-size: 14px;">
+      <span style="font-size: 20px;">✏️</span>
+      <span><strong>Edit Mode:</strong> Editing Application <strong id="editBannerAppNo">{{ app_number }}</strong>. You can update any fields and click <strong>Save Application</strong> below.</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button type="button" onclick="window.close(); if(!window.closed) window.location.href='/coordinator_dashboard';" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white;">
+        ✕ Exit to Dashboard
+      </button>
+    </div>
+  </div>
 
   <!-- ================== ADMISSION REGISTRATION FORM ================== -->
   <table class="header-table">
     <tr>
-      <td class="header-logo"><img src="/static/hlogo.jpg" alt="College Logo"></td>
+      <td class="header-logo"><img src="{{ url_for('static', filename='PEC Logo.png') }}" alt="College Logo"></td>
       <td class="header-text">
         <h2>PRATHYUSHA ENGINEERING COLLEGE</h2>
         <h3>B.E / B.Tech Degree Admission 2025-26</h3>
@@ -776,8 +855,42 @@
       groups.forEach(setupSyncGroup);
     });
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewAppNo = urlParams.get('view');
+    const editAppNo = urlParams.get('edit');
+    const isViewMode = Boolean({{ 'true' if view_mode else 'false' }} || viewAppNo);
+    const isEditMode = Boolean({{ 'true' if edit_mode else 'false' }} || editAppNo);
+
+    function enforceViewOnly() {
+      document.body.classList.add('view-only-mode');
+      const banner = document.getElementById('viewModeBanner');
+      if (banner) banner.style.display = 'flex';
+
+      ['saveBtn', 'saveBtnAdvance'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.style.display = 'none';
+      });
+
+      document.querySelectorAll('input, select, textarea').forEach(el => {
+        el.disabled = true;
+        el.readOnly = true;
+        if (el.type === 'file') {
+          el.style.display = 'none';
+        }
+      });
+    }
+
+    if (isViewMode) {
+      enforceViewOnly();
+    }
+
     // ================= Save Form Data to Server =================
     async function saveFormData() {
+      if (isViewMode) {
+        alert("This application is opened in View-Only mode. Editing is disabled.");
+        return;
+      }
+
       // Detect app number from either field
       let appNo = document.getElementById('advAppNo')?.value;
       if (appNo && (appNo.includes("Pending") || appNo.includes("Auto-generated") || appNo.includes("Error:"))) {
@@ -789,13 +902,6 @@
       // This avoids collisions if multiple users see the same preview number.
       if (typeof isNewApplication !== 'undefined' && isNewApplication) {
         appNo = "";
-      }
-
-      if (viewAppNo) {
-        if (!appNo) {
-          alert("Application Number missing in view mode!");
-          return;
-        }
       }
 
       // Gather ALL inputs
@@ -957,7 +1063,7 @@
                 else el.value = fd[key];
                 el.dispatchEvent(new Event('input'));
                 el.dispatchEvent(new Event('change'));
-              } else if (el.type === 'file' && fd[key] && typeof fd[key] === 'string' && fd[key].startsWith('data:image')) {
+              } else if (el.type === 'file' && fd[key] && typeof fd[key] === 'string' && (fd[key].startsWith('data:image') || fd[key].startsWith('/static/') || fd[key].includes('/uploads/'))) {
                 // Cannot set file input value, but can show preview
                 let img = el.parentElement.querySelector('img.preview');
                 if (!img) {
@@ -983,20 +1089,34 @@
 
             const titleEl = document.querySelector('.title');
             if (titleEl) titleEl.innerText = `ADMISSION REGISTRATION FORM - Application No: ${appData.application_number}`;
+
+            const bannerApp = document.getElementById('bannerAppNo');
+            if (bannerApp) bannerApp.innerText = appData.application_number;
           }
 
-          console.log("Application data loaded for View");
+          if (isViewMode) {
+            enforceViewOnly();
+          }
+
+          if (isEditMode) {
+            const editBanner = document.getElementById('editModeBanner');
+            if (editBanner) editBanner.style.display = 'flex';
+            const editBannerApp = document.getElementById('editBannerAppNo');
+            if (editBannerApp && appData.application_number) editBannerApp.innerText = appData.application_number;
+          }
+
+          console.log("Application data loaded for View/Edit");
         }
       } catch (e) {
         console.error("Error loading application:", e);
       }
     }
 
-    // Check URL param for view mode
-    const urlParams = new URLSearchParams(window.location.search);
-    const viewAppNo = urlParams.get('view');
+    // Trigger load if view or edit parameter is present
     if (viewAppNo) {
       loadApplicationData(viewAppNo);
+    } else if (editAppNo) {
+      loadApplicationData(editAppNo);
     }
 
     // ================= Image Preview =================
@@ -1050,11 +1170,15 @@
     // If not in view mode and server provided a number, use it
 
     // Track if this is a fresh application vs editing an existing one
-    let isNewApplication = !viewAppNo;
+    let isNewApplication = !viewAppNo && !editAppNo;
+
+    if (isViewMode) {
+      enforceViewOnly();
+    }
 
     const serverAppNumber = {{ app_number | tojson }};
 
-    if (serverAppNumber && serverAppNumber.trim() !== '' && !viewAppNo) {
+    if (serverAppNumber && serverAppNumber.trim() !== '' && (editAppNo || !viewAppNo)) {
       const el = document.getElementById('advAppNo');
       if (el) el.value = serverAppNumber;
 
@@ -1062,10 +1186,16 @@
       if (mainEl) mainEl.value = serverAppNumber;
 
       const titleEl = document.querySelector('.title');
-      if (titleEl) titleEl.innerText = `ADMISSION REGISTRATION FORM - Application No: ${serverAppNumber}`;
+      if (titleEl) {
+        if (isEditMode) {
+          titleEl.innerText = `EDIT ADMISSION REGISTRATION FORM - Application No: ${serverAppNumber}`;
+        } else {
+          titleEl.innerText = `ADMISSION REGISTRATION FORM - Application No: ${serverAppNumber}`;
+        }
+      }
       // Store in local storage for persistence on refresh
       localStorage.setItem('applicationNumber', serverAppNumber);
-    } else if (!viewAppNo) {
+    } else if (!viewAppNo && !editAppNo) {
       // If serverAppNumber is empty, show placeholder
       const el = document.getElementById('advAppNo');
       const mainEl = document.getElementById('mainAppNo');

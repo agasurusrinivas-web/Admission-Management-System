@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prathyusha Engineering College Application Form</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='PEC Logo.png') }}">
   <style>
     body {
       font-family: 'Times New Roman', serif;
@@ -210,14 +211,22 @@
       text-align: center;
     }
 
+    .previous-button,
     .next-button {
       background-color: #070707;
       color: #f2f2f2;
       text-decoration: none;
       text-align: center;
       border-radius: 10px;
-      margin-left: 630px;
-      padding: 10px;
+      padding: 10px 24px;
+      display: inline-block;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    .previous-button:hover,
+    .next-button:hover {
+      background-color: #333333;
     }
   </style>
 </head>
@@ -225,7 +234,7 @@
 <body>
   <div style="border: 1.5px solid black; padding: 10px;">
     <div class="header">
-      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="College Logo" style="width: 150px; height: 150px;" />
+      <img src="{{ url_for('static', filename='PEC Logo.png') }}" alt="College Logo" style="width: 150px; height: 150px; object-fit: contain;" />
       <h1>PRATHYUSHA ENGINEERING COLLEGE</h1>
       <p><strong>AN AUTONOMOUS INSTITUTION</strong></p>
       <p>ARANVOYALKUPPAM,POONAMALLEE-TIRUVALLUR ROAD,TIRUVALLUR-602 025.</p>
@@ -568,7 +577,7 @@
         </tr>
       </table>
     </div>
-    <div style="margin-top: 20px; margin-bottom: 10px; display: flex; justify-content: flex-end; gap: 15px; align-items: center;">
+    <div style="margin-top: 25px; margin-bottom: 15px; display: flex; justify-content: center; gap: 20px; align-items: center;">
       <a href="/coordinator_dashboard" class="previous-button" style="margin-left: 0;">Back</a>
       <a href="second.html" class="next-button" style="margin-left: 0;">Next</a>
     </div>
@@ -757,6 +766,18 @@
         console.error("Error fetching application details:", err);
       }
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const appNoParam = urlParams.get('app_no') || urlParams.get('edit') || urlParams.get('application_number');
+      if (appNoParam) {
+        const input = document.getElementById('appNoSearch');
+        if (input) {
+          input.value = appNoParam;
+          fetchApplicationDetails();
+        }
+      }
+    });
   </script>
 </body>
 

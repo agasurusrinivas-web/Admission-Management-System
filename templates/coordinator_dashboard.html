@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Coordinator Dashboard</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='PEC Logo.png') }}">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -24,7 +25,8 @@
             <a href="{{ url_for('conform_application', page='first.html') }}" target="_blank">Conform Application
               Form</a>
           </li>
-          <li class="px-6 py-3 hover:bg-indigo-700 cursor-pointer" onclick="showSection('feedback')">Feedback</li>
+          <li class="px-6 py-3 hover:bg-indigo-700 cursor-pointer" onclick="showSection('feedback')">Feedback & Follow-up</li>
+          <li class="px-6 py-3 hover:bg-indigo-700 cursor-pointer" onclick="showSection('followupVisits')">Follow-up Visits</li>
         </ul>
       </nav>
     </div>
@@ -34,8 +36,11 @@
   <!-- Main Content Wrapper -->
   <div class="flex-1 flex flex-col ml-64 h-full">
     <!-- Top Navigation -->
-    <header class="bg-[#B20808] text-white px-6 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold" id="headerTitle">Coordinator Dashboard</h1>
+    <header class="bg-[#B20808] text-white px-6 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <img src="{{ url_for('static', filename='PEC Logo.png') }}" alt="PEC Logo" class="h-10 w-10 object-contain rounded-full bg-white p-0.5 shadow-sm">
+        <h1 class="text-2xl font-bold" id="headerTitle">Coordinator Dashboard</h1>
+      </div>
       <div class="flex items-center space-x-4">
         <div class="relative">
           <button onclick="toggleNotificationDropdown()" class="relative">
@@ -56,62 +61,108 @@
     <main class="flex-1 p-6 overflow-y-auto">
       <!-- Dashboard Section -->
       <div id="dashboardSection">
-        <h2 class="text-xl font-bold mb-4">Dashboard Overview</h2>
-        <div class="grid grid-cols-2 gap-6 mb-6">
-          <div class="bg-white shadow rounded-lg p-6" style="width: 300px; height: 190px;">
-            <h3 class="font-bold">Total Admissions</h3>
-            <p id="totalAdmissions" class="text-2xl mt-2">0</p>
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Dashboard Overview</h2>
+        
+        <!-- Summary Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div class="bg-white shadow rounded-lg p-5 border-l-4 border-emerald-500 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-gray-700 text-sm">Total Admissions</h3>
+              <span class="text-xl">🎓</span>
+            </div>
+            <p id="totalAdmissions" class="text-3xl font-extrabold text-emerald-600 mt-2">0</p>
+            <span class="text-xs text-gray-500 mt-1">Confirmed student admissions</span>
           </div>
-          <div class="grid grid-cols-2 gap-6 mb-6">
-            <div class="bg-white shadow rounded-lg p-6"
-              style="margin-left: -300px; margin-right: 300px; padding-bottom: 100px; width: 300px;">
-              <h3 class="font-bold">Visited</h3>
-              <p id="totalVisited" class="text-2xl mt-2">0</p>
+
+          <div class="bg-white shadow rounded-lg p-5 border-l-4 border-blue-500 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-gray-700 text-sm">Visited Students</h3>
+              <span class="text-xl">🏫</span>
             </div>
-            <div class="bg-white shadow rounded-lg p-6" style="width: 300px; margin-left: -280px;">
-              <h3 class="font-bold">Notifications</h3>
-              <ul id="notificationList" class="mt-2 list-disc list-inside text-gray-700"></ul>
-            </div>
+            <p id="totalVisited" class="text-3xl font-extrabold text-blue-600 mt-2">0</p>
+            <span class="text-xs text-gray-500 mt-1">Total visited &amp; confirmed</span>
           </div>
-          <div class="bg-white shadow rounded-lg p-6 flex items-center justify-between max-w-xl">
-            <div class="flex flex-col">
-              <p><strong>Name:</strong> {{ coordinator_data['first_name'] }} {{ coordinator_data['last_name'] }}</p>
-              <p><strong>Email:</strong> {{ coordinator_data['email'] }}</p>
-              <p><strong>Phone:</strong> {{ coordinator_data['phone'] }}</p>
-              <p style="margin-top:6px;color:#666;font-size:13px"><strong>Department:</strong> {{
-                coordinator_data['work']
-                }}</p>
+
+          <div class="bg-white shadow rounded-lg p-5 border-l-4 border-amber-500 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-gray-700 text-sm">Visit Notifications</h3>
+              <span class="text-xl">🔔</span>
             </div>
-            <div class="flex flex-col items-center">
-              <img src="{{ coordinator_data['photo'] or 'https://via.placeholder.com/100' }}" alt="Coordinator Photo"
-                class="rounded-full w-24 h-24 object-cover" id="hi">
-              <div style="font-size:13px;color:#666;margin-top:6px">Profile Photo</div>
-            </div>
+            <ul id="notificationList" class="mt-2 list-disc list-inside text-gray-700 text-xs space-y-1 max-h-20 overflow-y-auto">
+              <li class="text-gray-400">Loading visit reminders...</li>
+            </ul>
+            <span class="text-xs text-gray-500 mt-1">Follow-up reminders for today</span>
+          </div>
+        </div>
+
+        <!-- Coordinator Profile Snippet -->
+        <div class="bg-white shadow rounded-lg p-6 flex items-center justify-between max-w-xl mb-6">
+          <div class="flex flex-col space-y-1">
+            <p class="text-base"><strong>Name:</strong> {{ coordinator_data['first_name'] }} {{ coordinator_data['last_name'] }}</p>
+            <p class="text-sm text-gray-600"><strong>Email:</strong> {{ coordinator_data['email'] }}</p>
+            <p class="text-sm text-gray-600"><strong>Phone:</strong> {{ coordinator_data['phone'] }}</p>
+            <p class="text-sm text-gray-600"><strong>Department:</strong> {{ coordinator_data['work'] or 'Not Assigned' }}</p>
+          </div>
+          <div class="flex flex-col items-center">
+            <img src="{{ coordinator_data['photo'] or 'https://via.placeholder.com/100' }}" alt="Coordinator Photo"
+              class="rounded-full w-20 h-20 object-cover shadow-sm border border-gray-200" id="hi">
+            <div class="text-xs text-gray-500 mt-1.5">Profile Photo</div>
           </div>
         </div>
       </div>
 
       <!-- Students Section -->
       <div id="students" style="display:none;">
-        <h2 class="text-xl font-bold mb-4">My Students</h2>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-800">My Students</h2>
+          <div id="activeDateBadge" class="hidden text-xs bg-indigo-50 border border-indigo-200 text-indigo-800 px-3 py-1 rounded-full font-medium"></div>
+        </div>
 
-        <!-- Filters -->
-        <div class="flex flex-wrap gap-2 mb-4">
-          <input type="date" id="startDate" class="px-4 py-2 border rounded-md">
-          <input type="date" id="endDate" class="px-4 py-2 border rounded-md">
-          <label class="flex items-center space-x-2">
-            <input type="checkbox" id="pieChartOption">
-            <span>Show Pie Chart by Department</span>
-          </label>
-          <button id="downloadExcelBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Download
-            Excel</button>
-          <button id="downloadPdfBtn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Download
-            PDF</button>
+        <!-- Filters Bar -->
+        <div class="bg-white p-4 rounded-lg shadow-sm mb-4 border border-gray-200">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-1.5">
+              <label for="startDate" class="text-xs font-semibold text-gray-600">From Date:</label>
+              <input type="date" id="startDate" class="px-3 py-1.5 border rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+            <div class="flex items-center gap-1.5">
+              <label for="endDate" class="text-xs font-semibold text-gray-600">To Date:</label>
+              <input type="date" id="endDate" class="px-3 py-1.5 border rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+            <div class="flex items-center gap-1.5">
+              <label for="statusFilter" class="text-xs font-semibold text-gray-600">Status:</label>
+              <select id="statusFilter" class="px-3 py-1.5 border rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <option value="all">All Applications (Show All)</option>
+                <option value="pending">Pending / Visited Only</option>
+                <option value="confirmed">Confirmed Only</option>
+              </select>
+            </div>
+            <button id="clearDatesBtn" type="button" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200 transition">
+              Clear Dates
+            </button>
+            <div class="h-6 w-px bg-gray-300 mx-1 hidden md:block"></div>
+            <label class="flex items-center space-x-1.5 text-xs text-gray-700 cursor-pointer select-none">
+              <input type="checkbox" id="pieChartOption" class="rounded text-indigo-600 focus:ring-indigo-500">
+              <span>Show Pie Chart by Department</span>
+            </label>
+            <div class="flex items-center gap-2 ml-auto">
+              <button id="downloadExcelBtn" type="button" class="px-3 py-1.5 bg-emerald-600 text-white rounded text-xs font-semibold hover:bg-emerald-700 shadow-sm flex items-center gap-1 transition">
+                <span>📊</span> Download Excel
+              </button>
+              <button id="downloadPdfBtn" type="button" class="px-3 py-1.5 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 shadow-sm flex items-center gap-1 transition">
+                <span>📄</span> Download PDF
+              </button>
+            </div>
+          </div>
+          <div id="dateFilterNotice" class="mt-2 text-xs text-indigo-700 font-medium hidden"></div>
+          <div id="filterInfoText" class="mt-1 text-xs text-gray-500">
+            Select a date range or a single day to view all student application details for that period.
+          </div>
         </div>
 
         <!-- Department Pie Chart Container -->
         <div id="coordPieChartContainer" class="hidden bg-white shadow rounded-lg p-6 mb-6">
-          <h3 class="text-lg font-bold text-gray-800 mb-2">Department-wise Student Distribution</h3>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">Department-wise Student Distribution (Filtered Applications)</h3>
           <div id="coordPieChartCanvasWrapper"
             style="position: relative; height: 280px; max-width: 500px; margin: 0 auto;">
             <canvas id="coordDeptPieChart"></canvas>
@@ -120,20 +171,23 @@
           </div>
         </div>
 
-        <input type="text" id="searchStudent" placeholder="Search by student name or application no"
-          class="px-4 py-2 border rounded w-full mb-4" onkeyup="searchStudent()">
+        <input type="text" id="searchStudent" placeholder="Search by student name, father name, application number, or department..."
+          class="px-4 py-2 border rounded-md w-full mb-4 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
 
         <div class="bg-white shadow rounded-lg overflow-auto">
           <table class="min-w-full">
-            <thead class="bg-gray-100 text-gray-600 uppercase text-sm">
+            <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
               <tr>
-                <th class="py-3 px-4">Application No</th>
-                <th class="py-3 px-4">Student Name</th>
-                <th class="py-3 px-4">Department</th>
-                <th class="py-3 px-4">Mobile</th>
-                <th class="py-3 px-4">Address</th>
-                <th class="py-3 px-4">Next College Visit</th>
-                <th class="py-3 px-4">Action</th>
+                <th class="py-3 px-4 text-left">Application No</th>
+                <th class="py-3 px-4 text-left">Student Name</th>
+                <th class="py-3 px-4 text-left">Father Name</th>
+                <th class="py-3 px-4 text-left">Department</th>
+                <th class="py-3 px-4 text-left">Mobile</th>
+                <th class="py-3 px-4 text-left">Address</th>
+                <th class="py-3 px-4 text-left">Date Submitted</th>
+                <th class="py-3 px-4 text-left">Next College Visit</th>
+                <th class="py-3 px-4 text-left">Status</th>
+                <th class="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
             <tbody id="studentTableBody"></tbody>
@@ -144,43 +198,145 @@
 
 
 
-      <!-- Feedback Section -->
+      <!-- Feedback & Follow-up Section -->
       <div id="feedback" style="display:none;">
-        <h2 class="text-xl font-bold mb-4">Feedback</h2>
-        <div class="bg-white shadow rounded-lg p-6 max-w-lg mb-6">
-          <form id="feedbackForm" class="space-y-4">
-            <div>
-              <label class="block text-gray-700 mb-1">Application Number</label>
-              <select id="appNoInput" class="w-full px-4 py-2 border rounded-md" required></select>
-            </div>
-            <div>
-              <label class="block text-gray-700 mb-1">Feedback</label>
-              <textarea id="feedbackInput" placeholder="Enter feedback..." class="w-full px-4 py-2 border rounded-md"
-                rows="4" required></textarea>
-            </div>
-            <div>
-              <label class="block text-gray-700 mb-1">Next College Visit Date</label>
-              <input type="date" id="visitDateInput" class="w-full px-4 py-2 border rounded-md">
-            </div>
-            <div class="text-center">
-              <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                Save Feedback
+        <h2 class="text-xl font-bold mb-4">Student Feedback & Next Visit Follow-up</h2>
+        <div id="followupAlert" class="hidden mb-4 p-4 rounded-md"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <!-- Form Card -->
+          <div class="bg-white shadow rounded-lg p-6 lg:col-span-1">
+            <h3 class="font-bold text-gray-800 text-lg mb-3">Record Visit & Schedule Reminder</h3>
+            <form id="feedbackForm" class="space-y-4">
+              <div>
+                <label class="block text-gray-700 mb-1 text-sm font-semibold">Application Number</label>
+                <select id="appNoInput" class="w-full px-4 py-2 border rounded-md" required onchange="onApplicationSelected(this.value)"></select>
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-1 text-sm font-semibold">Student Name</label>
+                <input type="text" id="studentNameDisplay" class="w-full px-4 py-2 border rounded-md bg-gray-50 text-gray-800 font-medium" readonly placeholder="Auto-populated student name">
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-1 text-sm font-semibold">Student Email <span class="text-xs text-gray-500 font-normal">(for reminders)</span></label>
+                <input type="email" id="studentEmailInput" class="w-full px-4 py-2 border rounded-md" placeholder="student@example.com">
+                <p id="studentEmailHint" class="text-xs text-gray-500 mt-1"></p>
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-1 text-sm font-semibold">Feedback / Discussion Notes</label>
+                <textarea id="feedbackInput" placeholder="Enter visit feedback, discussion details, admission status..." class="w-full px-4 py-2 border rounded-md" rows="3" required></textarea>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-gray-700 mb-1 text-sm font-semibold">Next Visit Date</label>
+                  <input type="date" id="visitDateInput" class="w-full px-3 py-2 border rounded-md" required>
+                </div>
+                <div>
+                  <label class="block text-gray-700 mb-1 text-sm font-semibold">Next Visit Time</label>
+                  <input type="time" id="visitTimeInput" value="10:30" class="w-full px-3 py-2 border rounded-md" required>
+                </div>
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-1 text-sm font-semibold">Purpose / Reason for Visit</label>
+                <select id="purposeInput" class="w-full px-4 py-2 border rounded-md">
+                  <option value="Confirm Admission">Confirm Admission</option>
+                  <option value="Document Verification">Document Verification</option>
+                  <option value="Counseling / Discussion">Counseling / Discussion</option>
+                  <option value="College Visit">College Visit</option>
+                  <option value="Fee Payment">Fee Payment</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="pt-2">
+                <button type="submit" id="saveFeedbackBtn" class="w-full py-2.5 bg-[#B20808] text-white font-semibold rounded-md hover:bg-red-800 transition">
+                  Save & Schedule Reminders
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Recent Feedback & Visit History Table -->
+          <div class="bg-white shadow rounded-lg p-6 lg:col-span-2">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-gray-800 text-lg">My Student Visit Records</h3>
+              <button onclick="showSection('followupVisits')" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                View All Follow-up Visits →
               </button>
             </div>
-          </form>
+            <div class="overflow-x-auto">
+              <table class="min-w-full">
+                <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                  <tr>
+                    <th class="py-3 px-3 text-left">App No</th>
+                    <th class="py-3 px-3 text-left">Student</th>
+                    <th class="py-3 px-3 text-left">Feedback</th>
+                    <th class="py-3 px-3 text-left">Next Visit</th>
+                    <th class="py-3 px-3 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="feedbackTableBody" class="text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Follow-up Visits Section -->
+      <div id="followupVisits" style="display:none;">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">Follow-up Visits & Email Reminders</h2>
+            <p class="text-sm text-gray-500">Automated reminder system for upcoming student visits</p>
+          </div>
+          <button onclick="showSection('feedback')" class="px-4 py-2 bg-[#B20808] text-white rounded-md hover:bg-red-800 text-sm font-semibold">
+            + Schedule New Follow-up
+          </button>
         </div>
 
-        <div class="bg-white shadow rounded-lg p-4 max-w-2xl">
-          <table class="min-w-full">
-            <thead class="bg-gray-100 text-gray-600 uppercase text-sm">
+        <!-- Filter tabs -->
+        <div class="flex flex-wrap gap-2 mb-4 border-b pb-2">
+          <button class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium bg-[#B20808] text-white" onclick="filterFollowUps('all', this)">All (<span id="countAll">0</span>)</button>
+          <button class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" onclick="filterFollowUps('upcoming', this)">Upcoming (<span id="countUpcoming">0</span>)</button>
+          <button class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" onclick="filterFollowUps('today', this)">Today (<span id="countToday">0</span>)</button>
+          <button class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" onclick="filterFollowUps('completed', this)">Completed (<span id="countCompleted">0</span>)</button>
+          <button class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" onclick="filterFollowUps('missed', this)">Missed (<span id="countMissed">0</span>)</button>
+          <button class="filter-tab px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" onclick="filterFollowUps('email_failed', this)">Email Failed (<span id="countFailed">0</span>)</button>
+        </div>
+
+        <!-- Follow-ups Table -->
+        <div class="bg-white shadow rounded-lg overflow-x-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
               <tr>
-                <th class="py-3 px-4">Application No</th>
-                <th class="py-3 px-4">Feedback</th>
-                <th class="py-3 px-4">Next Visit</th>
+                <th class="py-3 px-4">Application</th>
+                <th class="py-3 px-4">Student</th>
+                <th class="py-3 px-4">Scheduled Visit</th>
+                <th class="py-3 px-4">Purpose</th>
+                <th class="py-3 px-4">Student Email</th>
+                <th class="py-3 px-4">Coord Email</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody id="feedbackTableBody"></tbody>
+            <tbody id="followupTableBody" class="divide-y divide-gray-200">
+              <tr><td colspan="8" class="text-center py-6 text-gray-500">Loading follow-ups...</td></tr>
+            </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Follow-up History Modal -->
+      <div id="historyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+          <div class="px-6 py-4 bg-[#B20808] text-white flex justify-between items-center">
+            <h3 class="font-bold text-lg" id="historyModalTitle">Follow-up History</h3>
+            <button onclick="closeHistoryModal()" class="text-white hover:text-gray-200 text-2xl leading-none">&times;</button>
+          </div>
+          <div class="p-6 overflow-y-auto flex-1">
+            <div id="historyTimeline" class="space-y-4"></div>
+          </div>
+          <div class="px-6 py-3 bg-gray-50 border-t flex justify-end">
+            <button onclick="closeHistoryModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium">Close</button>
+          </div>
         </div>
       </div>
 
@@ -233,80 +389,279 @@
     let feedbacks = [];
 
     function showSection(section) {
-      const sections = ['dashboardSection', 'students', 'feedback', 'profile'];
-      sections.forEach(sec => document.getElementById(sec).style.display = 'none');
-      const sectionMap = { 'dashboard': 'dashboardSection', 'students': 'students', 'feedback': 'feedback', 'profile': 'profile' };
-      document.getElementById(sectionMap[section]).style.display = 'block';
+      const sections = ['dashboardSection', 'students', 'feedback', 'profile', 'followupVisits'];
+      sections.forEach(sec => {
+        const el = document.getElementById(sec);
+        if (el) el.style.display = 'none';
+      });
+      const sectionMap = {
+        'dashboard': 'dashboardSection',
+        'dashboardSection': 'dashboardSection',
+        'students': 'students',
+        'feedback': 'feedback',
+        'profile': 'profile',
+        'followupVisits': 'followupVisits'
+      };
+      const targetId = sectionMap[section] || section;
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) targetEl.style.display = 'block';
+
+      if (section === 'followupVisits' || targetId === 'followupVisits') {
+        loadFollowUps('all');
+      }
     }
 
     function toggleNotificationDropdown() {
       document.getElementById("notificationDropdown").classList.toggle("hidden");
     }
 
-    async function loadStudents() {
-      const res = await fetch('/get_coordinator_applications');
-      const data = await res.json();
-      students = data.applications || [];
-      populateFeedbackDropdown();
-      renderStudents();
-      renderFeedback();
+    let allCoordinatorStudents = [];
 
-      // If no data, show message
-      if (!students || students.length === 0) {
-        const tbody = document.getElementById('studentTableBody');
-        tbody.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-gray-600">No data found</td></tr>`;
+    function normalizeDateToIso(dateStr) {
+      if (!dateStr) return null;
+      const s = String(dateStr).trim();
+      if (!s || s === '---' || s === '-' || s.toLowerCase() === 'null') return null;
+      const isoMatch = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (isoMatch) {
+        const [, y, m, d] = isoMatch;
+        return `${y.padStart(4, '0')}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+      }
+      const dmyMatch = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+      if (dmyMatch) {
+        const [, d, m, y] = dmyMatch;
+        return `${y.padStart(4, '0')}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+      }
+      return null;
+    }
+
+    function isStudentPending(s) {
+      if (typeof s.is_pending === 'boolean') return s.is_pending;
+      const st = String(s.status || '').trim().toLowerCase();
+      const finished = ['confirmed', 'completed', 'cancelled', 'rejected', 'admitted'];
+      return !finished.includes(st);
+    }
+
+    function getStudentDates(s) {
+      const dates = [];
+      ['date_submitted', 'next_visit', 'date_opened'].forEach(k => {
+        const d = normalizeDateToIso(s[k]);
+        if (d && !dates.includes(d)) dates.push(d);
+      });
+      if (s.relevant_action_date) {
+        const d = normalizeDateToIso(s.relevant_action_date);
+        if (d && !dates.includes(d)) dates.push(d);
+      }
+      return dates;
+    }
+
+    function filterStudentsData() {
+      const startEl = document.getElementById('startDate');
+      const endEl = document.getElementById('endDate');
+      const searchEl = document.getElementById('searchStudent');
+      const statusEl = document.getElementById('statusFilter');
+      const noticeEl = document.getElementById('dateFilterNotice');
+      const badgeEl = document.getElementById('activeDateBadge');
+
+      const startVal = startEl ? startEl.value : '';
+      const endVal = endEl ? endEl.value : '';
+      const statusVal = statusEl ? statusEl.value : 'all';
+      const searchVal = searchEl ? searchEl.value.trim().toLowerCase() : '';
+
+      // If user selected only From Date, treat as single day ("that day")
+      const isSingleDay = Boolean(startVal && !endVal);
+      const effectiveStart = startVal || '';
+      const effectiveEnd = isSingleDay ? startVal : (endVal || '');
+      const hasDateRange = Boolean(effectiveStart || effectiveEnd);
+
+      if (noticeEl) {
+        if (hasDateRange) {
+          let dateMsg = '';
+          if (isSingleDay || (effectiveStart && effectiveEnd && effectiveStart === effectiveEnd)) {
+            dateMsg = `Showing all application details for <strong>${effectiveStart}</strong> (that day)`;
+          } else if (effectiveStart && effectiveEnd) {
+            dateMsg = `Showing all application details from <strong>${effectiveStart}</strong> to <strong>${effectiveEnd}</strong>`;
+          } else if (effectiveStart) {
+            dateMsg = `Showing all application details from <strong>${effectiveStart}</strong> onwards`;
+          } else if (effectiveEnd) {
+            dateMsg = `Showing all application details up to <strong>${effectiveEnd}</strong>`;
+          }
+          if (statusVal === 'pending') {
+            dateMsg += ` [Pending / Visited Only]`;
+          } else if (statusVal === 'confirmed') {
+            dateMsg += ` [Confirmed Only]`;
+          }
+          noticeEl.innerHTML = `📅 ${dateMsg}`;
+          noticeEl.classList.remove('hidden');
+        } else if (statusVal !== 'all') {
+          noticeEl.innerHTML = `Filtering by Status: <strong>${statusVal === 'pending' ? 'Pending / Visited Only' : 'Confirmed Only'}</strong>`;
+          noticeEl.classList.remove('hidden');
+        } else {
+          noticeEl.classList.add('hidden');
+          noticeEl.innerHTML = '';
+        }
       }
 
-      // highlight newly saved application (if coming from form)
-      const lastApp = sessionStorage.getItem('lastAppNumber');
-      if (lastApp) {
-        setTimeout(() => {
-          const rows = document.querySelectorAll('#studentTableBody tr');
-          rows.forEach(row => {
-            if (row.cells[0].textContent.trim() === String(lastApp).trim()) {
-              row.style.backgroundColor = '#FFFBCC';
-              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (badgeEl) {
+        if (hasDateRange) {
+          badgeEl.innerText = isSingleDay ? `Date: ${effectiveStart}` : `Period: ${effectiveStart || 'Start'} to ${effectiveEnd || 'End'}`;
+          badgeEl.classList.remove('hidden');
+        } else {
+          badgeEl.classList.add('hidden');
+        }
+      }
+
+      const filtered = (allCoordinatorStudents || []).filter(s => {
+        if (!s) return false;
+
+        // Date matching across all application dates (submitted, next visit, opened)
+        if (hasDateRange) {
+          const dates = getStudentDates(s);
+          let matched = false;
+          for (const d of dates) {
+            if (effectiveStart && effectiveEnd && d >= effectiveStart && d <= effectiveEnd) {
+              matched = true;
+              break;
+            } else if (effectiveStart && !effectiveEnd && d >= effectiveStart) {
+              matched = true;
+              break;
+            } else if (effectiveEnd && !effectiveStart && d <= effectiveEnd) {
+              matched = true;
+              break;
             }
-          });
-          sessionStorage.removeItem('lastAppNumber');
-        }, 100);
+          }
+          if (!matched) return false;
+        }
+
+        // Status filter: 'all' shows both confirmed and pending/visited
+        if (statusVal === 'pending') {
+          if (!isStudentPending(s)) return false;
+        } else if (statusVal === 'confirmed') {
+          const st = String(s.status || '').trim().toLowerCase();
+          if (st !== 'confirmed') return false;
+        }
+
+        // Search query
+        if (searchVal) {
+          const name = String(s.student_name || '').toLowerCase();
+          const father = String(s.father_name || '').toLowerCase();
+          const appNo = String(s.application_number || '').toLowerCase();
+          const dept = String(s.preferred_branch || '').toLowerCase();
+          const mobile = String(s.mobile || '').toLowerCase();
+          if (!name.includes(searchVal) && !father.includes(searchVal) && !appNo.includes(searchVal) && !dept.includes(searchVal) && !mobile.includes(searchVal)) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      return { filtered, hasDateRange, searchVal };
+    }
+
+    function refreshStudentsTable() {
+      const { filtered, hasDateRange, searchVal } = filterStudentsData();
+      renderStudentsTable(filtered, hasDateRange, searchVal);
+    }
+
+    function renderStudentsTable(filtered, hasDateRange, searchVal) {
+      const tbody = document.getElementById('studentTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      if (!filtered || filtered.length === 0) {
+        let msg = "No applications found.";
+        if (hasDateRange) {
+          msg = "No applications found for the selected date period.";
+        } else if (searchVal) {
+          msg = `No matching applications found for "${searchVal}".`;
+        }
+        tbody.innerHTML = `<tr><td colspan="10" class="py-8 px-4 text-center text-gray-500 font-medium">${msg}</td></tr>`;
+      } else {
+        filtered.forEach(s => {
+          let statusBadge = "";
+          const st = String(s.status || '').toLowerCase();
+          if (st === 'confirmed') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Confirmed</span>';
+          } else if (st === 'visited') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Pending Visit</span>';
+          } else if (st === 'completed') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">Completed</span>';
+          } else {
+            statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">${s.status || 'Pending'}</span>`;
+          }
+
+          tbody.innerHTML += `
+            <tr class="border-b hover:bg-gray-50 transition">
+              <td class="py-3 px-4 font-semibold text-gray-800">${s.application_number || ""}</td>
+              <td class="py-3 px-4 font-medium text-gray-900">${s.student_name || ""}</td>
+              <td class="py-3 px-4 text-gray-700">${s.father_name || "-"}</td>
+              <td class="py-3 px-4 text-gray-700">${s.preferred_branch || ""}</td>
+              <td class="py-3 px-4 text-gray-600">${s.mobile || "-"}</td>
+              <td class="py-3 px-4 text-gray-600 max-w-xs truncate" title="${s.address || ''}">${s.address || "-"}</td>
+              <td class="py-3 px-4 text-gray-600 whitespace-nowrap">${s.date_submitted ? String(s.date_submitted).substring(0, 10) : "-"}</td>
+              <td class="py-3 px-4 font-medium text-indigo-700 whitespace-nowrap">${s.next_visit || "-"}</td>
+              <td class="py-3 px-4">${statusBadge}</td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-1.5">
+                  <button class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-medium shadow-sm transition"
+                    onclick="viewApplication('${s.application_number}', '${s.status}')">
+                    View
+                  </button>
+                  <button class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-xs font-medium shadow-sm transition"
+                    onclick="editApplication('${s.application_number}', '${s.status}')">
+                    Edit
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      renderCoordDeptPieChart(filtered);
+    }
+
+    async function loadStudents() {
+      try {
+        const res = await fetch('/get_coordinator_applications');
+        const data = await res.json();
+        allCoordinatorStudents = data.applications || data.students || [];
+        students = allCoordinatorStudents;
+
+        const totalAdm = allCoordinatorStudents.filter(s => s.status === 'confirmed').length;
+        const totalVis = allCoordinatorStudents.filter(s => s.status === 'visited' || s.status === 'confirmed').length;
+        const admEl = document.getElementById('totalAdmissions');
+        const visEl = document.getElementById('totalVisited');
+        if (admEl) admEl.innerText = totalAdm;
+        if (visEl) visEl.innerText = totalVis;
+
+        populateFeedbackDropdown();
+        refreshStudentsTable();
+        renderFeedback();
+        loadCoordinatorNotifications();
+
+        const lastApp = sessionStorage.getItem('lastAppNumber');
+        if (lastApp) {
+          setTimeout(() => {
+            const rows = document.querySelectorAll('#studentTableBody tr');
+            rows.forEach(row => {
+              if (row.cells[0] && row.cells[0].textContent.trim() === String(lastApp).trim()) {
+                row.style.backgroundColor = '#FFFBCC';
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            });
+            sessionStorage.removeItem('lastAppNumber');
+          }, 150);
+        }
+      } catch (err) {
+        console.error("Error loading coordinator students:", err);
+        const tbody = document.getElementById('studentTableBody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="py-6 px-4 text-center text-red-600">Failed to load student applications.</td></tr>`;
       }
     }
 
     function renderStudents(search = "") {
-      const tbody = document.getElementById('studentTableBody');
-      tbody.innerHTML = "";
-      const filtered = (students || []).filter(s => {
-        if (!s) return false;
-        const name = (s.student_name || "").toString().toLowerCase();
-        const app = (s.application_number || "").toString().toLowerCase();
-        const q = (search || "").toString().toLowerCase();
-        return name.includes(q) || app.includes(q);
-      });
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-gray-600">No data found</td></tr>`;
-      } else {
-        filtered.forEach(s => {
-          tbody.innerHTML += `<tr class="border-b">
-            <td class="py-2 px-4">${s.application_number || ""}</td>
-            <td class="py-2 px-4">${s.student_name || ""}</td>
-            <td class="py-2 px-4">${s.preferred_branch || ""}</td>
-            <td class="py-2 px-4">${s.mobile || "-"}</td>
-            <td class="py-2 px-4">${s.address || "-"}</td>
-            <td class="py-2 px-4">${s.next_visit || "-"}</td>
-            <td class="py-2 px-4">
-               <button class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                  onclick="viewApplication('${s.application_number}', '${s.status}')">
-                  View
-               </button>
-            </td>
-          </tr>`;
-        });
-      }
-      document.getElementById('totalAdmissions').innerText = (students || []).filter(s => s.status === 'confirmed').length;
-      document.getElementById('totalVisited').innerText = (students || []).filter(s => s.status === 'visited' || s.status === 'confirmed').length;
-      renderCoordDeptPieChart(filtered);
+      refreshStudentsTable();
     }
 
     let coordPieChartInstance = null;
@@ -391,49 +746,381 @@
 
     function populateFeedbackDropdown() {
       const select = document.getElementById('appNoInput');
-      select.innerHTML = "";
+      select.innerHTML = '<option value="">-- Select Application --</option>';
       students.forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.application_number;
         opt.textContent = `${s.application_number} - ${s.student_name}`;
         select.appendChild(opt);
       });
+
+      // Set min date to today
+      const today = new Date().toISOString().split('T')[0];
+      const visitDateInput = document.getElementById('visitDateInput');
+      if (visitDateInput) visitDateInput.min = today;
+
+      // Select first student if available
+      if (students.length > 0) {
+        select.value = students[0].application_number;
+        onApplicationSelected(students[0].application_number);
+      }
+    }
+
+    function onApplicationSelected(appNo) {
+      const stu = (students || []).find(s => s.application_number === appNo);
+      const nameInput = document.getElementById("studentNameDisplay");
+      const emailInput = document.getElementById("studentEmailInput");
+      const hint = document.getElementById("studentEmailHint");
+
+      if (stu) {
+        nameInput.value = stu.student_name || "";
+        emailInput.value = stu.email || "";
+        if (stu.email) {
+          hint.innerText = "✓ Student email on file. Reminders will be sent here.";
+          hint.className = "text-xs text-green-600 mt-1";
+        } else {
+          hint.innerText = "⚠ No email on file. Enter student email here to enable reminder delivery.";
+          hint.className = "text-xs text-amber-600 mt-1";
+        }
+      } else {
+        nameInput.value = "";
+        emailInput.value = "";
+        hint.innerText = "";
+      }
     }
 
     document.getElementById("feedbackForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       const appNo = document.getElementById("appNoInput").value;
-      const feedbackText = document.getElementById("feedbackInput").value;
+      const studentName = document.getElementById("studentNameDisplay").value;
+      const studentEmail = document.getElementById("studentEmailInput").value.trim();
+      const feedbackText = document.getElementById("feedbackInput").value.trim();
       const visitDate = document.getElementById("visitDateInput").value;
+      const visitTime = document.getElementById("visitTimeInput").value || "10:30 AM";
+      const purpose = document.getElementById("purposeInput").value;
 
-      if (!appNo || !feedbackText) { alert("Enter Application No and Feedback"); return; }
-
-      await fetch('/save_feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ application_number: appNo, feedback: feedbackText, next_visit: visitDate })
-      });
-
-      const stu = students.find(s => s.application_number === appNo);
-      if (stu) {
-        stu.next_visit = visitDate || "---";
-        stu.feedback = feedbackText;
+      if (!appNo || !feedbackText) {
+        alert("Please enter both Application Number and Feedback.");
+        return;
       }
-      renderFeedback();
-      renderStudents();
-      this.reset();
+
+      if (visitDate) {
+        // Validate date is not in past
+        const chosen = new Date(`${visitDate}T${visitTime.length === 5 ? visitTime : '10:30'}`);
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - 5);
+        if (chosen < now) {
+          alert("Next visit date and time cannot be in the past. Please select an upcoming date and time.");
+          return;
+        }
+      }
+
+      const btn = document.getElementById("saveFeedbackBtn");
+      btn.disabled = true;
+      btn.innerText = "Saving & Scheduling...";
+
+      const alertBox = document.getElementById("followupAlert");
+      alertBox.classList.add("hidden");
+
+      try {
+        const res = await fetch('/save_feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            application_number: appNo,
+            student_name: studentName,
+            student_email: studentEmail,
+            feedback: feedbackText,
+            visit_date: visitDate,
+            visit_time: visitTime,
+            purpose: purpose
+          })
+        });
+
+        const data = await res.json();
+        btn.disabled = false;
+        btn.innerText = "Save & Schedule Reminders";
+
+        if (res.ok && data.success) {
+          let alertHtml = `<div class="font-semibold">${data.message}</div>`;
+          if (data.warning) {
+            alertHtml += `<div class="mt-1 text-xs opacity-90">${data.warning}</div>`;
+          }
+          alertHtml += `<div class="mt-2 text-xs">Email Reminders: Student (${data.student_email_status || 'scheduled'}), Coordinator (${data.coordinator_email_status || 'scheduled'})</div>`;
+
+          alertBox.innerHTML = alertHtml;
+          alertBox.className = "mb-4 p-4 rounded-md bg-green-50 border border-green-200 text-green-800 text-sm";
+          alertBox.classList.remove("hidden");
+
+          const stu = students.find(s => s.application_number === appNo);
+          if (stu) {
+            stu.next_visit = visitDate ? `${visitDate} ${visitTime}` : "---";
+            stu.feedback = feedbackText;
+            if (visitDate) stu.relevant_action_date = visitDate;
+            if (studentEmail) stu.email = studentEmail;
+          }
+
+          renderFeedback();
+          refreshStudentsTable();
+          loadFollowUps('all');
+
+          // Reset inputs except application
+          document.getElementById("feedbackInput").value = "";
+          setTimeout(() => alertBox.classList.add("hidden"), 8000);
+        } else {
+          alertBox.innerHTML = `<strong>Error:</strong> ${data.error || "Failed to save feedback."}`;
+          alertBox.className = "mb-4 p-4 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm";
+          alertBox.classList.remove("hidden");
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Save & Schedule Reminders";
+        alertBox.innerHTML = `<strong>Error:</strong> ${err.message}`;
+        alertBox.className = "mb-4 p-4 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm";
+        alertBox.classList.remove("hidden");
+      }
     });
 
     function renderFeedback() {
       const tbody = document.getElementById("feedbackTableBody");
       tbody.innerHTML = "";
-      students.filter(s => s.feedback).forEach(f => {
-        tbody.innerHTML += `<tr class="border-b">
-          <td class="py-2 px-4">${f.application_number}</td>
-          <td class="py-2 px-4">${f.feedback}</td>
-          <td class="py-2 px-4">${f.next_visit || "---"}</td>
+      const withFeedback = students.filter(s => s.feedback);
+      if (withFeedback.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-500">No visit feedback recorded yet.</td></tr>`;
+        return;
+      }
+      withFeedback.forEach(f => {
+        tbody.innerHTML += `<tr class="border-b hover:bg-gray-50">
+          <td class="py-3 px-3 font-semibold text-gray-800">${f.application_number}</td>
+          <td class="py-3 px-3">${f.student_name}</td>
+          <td class="py-3 px-3 text-gray-600 max-w-xs truncate" title="${f.feedback}">${f.feedback}</td>
+          <td class="py-3 px-3 font-medium text-indigo-700">${f.next_visit || "---"}</td>
+          <td class="py-3 px-3 text-center">
+            <button onclick="openFollowUpHistory('${f.application_number}', '${f.student_name}')" class="px-2.5 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-medium">
+              History
+            </button>
+          </td>
         </tr>`;
       });
+    }
+
+    let currentFollowUpFilter = 'all';
+
+    function filterFollowUps(filter, btn) {
+      currentFollowUpFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(b => {
+        b.className = "filter-tab px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200";
+      });
+      if (btn) {
+        btn.className = "filter-tab px-3 py-1.5 rounded-md text-sm font-medium bg-[#B20808] text-white";
+      }
+      loadFollowUps(filter);
+    }
+
+    async function loadFollowUps(filter = currentFollowUpFilter) {
+      try {
+        const res = await fetch(`/api/coordinator/follow_ups?status=${filter}`);
+        const data = await res.json();
+        const items = data.follow_ups || [];
+        renderFollowUpsTable(items);
+        updateFollowUpCounts();
+      } catch (e) {
+        console.error("Failed to load follow-ups:", e);
+      }
+    }
+
+    async function updateFollowUpCounts() {
+      try {
+        const res = await fetch(`/api/coordinator/follow_ups?status=all`);
+        const data = await res.json();
+        const all = data.follow_ups || [];
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('countAll').innerText = all.length;
+        document.getElementById('countUpcoming').innerText = all.filter(f => f.status === 'scheduled' || f.status === 'email_sent').length;
+        document.getElementById('countToday').innerText = all.filter(f => (f.scheduled_date === todayStr || (f.scheduled_at && f.scheduled_at.startsWith(todayStr)))).length;
+        document.getElementById('countCompleted').innerText = all.filter(f => f.status === 'completed').length;
+        document.getElementById('countMissed').innerText = all.filter(f => f.status === 'missed').length;
+        document.getElementById('countFailed').innerText = all.filter(f => f.student_email_status === 'email_failed' || f.coordinator_email_status === 'email_failed' || f.status === 'email_failed').length;
+      } catch (e) {
+        console.error("Failed to update follow-up counts:", e);
+      }
+    }
+
+    function renderFollowUpsTable(items) {
+      const tbody = document.getElementById("followupTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      if (!items || items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">No follow-ups found for this filter.</td></tr>`;
+        return;
+      }
+
+      items.forEach(f => {
+        // Status Badge
+        let statusBadge = "";
+        if (f.status === 'completed') {
+          statusBadge = `<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>`;
+        } else if (f.status === 'missed') {
+          statusBadge = `<span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">Missed</span>`;
+        } else if (f.status === 'email_failed') {
+          statusBadge = `<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Email Failed</span>`;
+        } else if (f.status === 'email_sent') {
+          statusBadge = `<span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-semibold">Email Sent</span>`;
+        } else {
+          statusBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">Scheduled</span>`;
+        }
+
+        // Email Badges
+        const renderEmailBadge = (status, email, notifId) => {
+          if (status === 'sent') {
+            return `<div class="flex items-center gap-1"><span class="text-green-600 font-bold">✓</span> <span class="text-xs text-gray-700">Sent</span></div>`;
+          } else if (status === 'email_failed') {
+            return `<div class="flex items-center gap-1.5"><span class="text-red-500 font-bold">⚠</span> <span class="text-xs text-red-600 font-medium">Failed</span> ${notifId ? `<button onclick="retryNotification(${notifId}, '${email || ''}')" class="text-xs text-blue-600 underline hover:text-blue-800">Retry</button>` : ''}</div>`;
+          } else {
+            return `<div class="flex items-center gap-1"><span class="text-blue-500">⏱</span> <span class="text-xs text-gray-600">Scheduled</span></div>`;
+          }
+        };
+
+        const studentEmailHtml = renderEmailBadge(f.student_email_status, f.student_email, f.student_notif_id);
+        const coordEmailHtml = renderEmailBadge(f.coordinator_email_status, '', f.coord_notif_id);
+
+        const isCompleted = (f.status === 'completed');
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-50 border-b">
+            <td class="py-3 px-4 font-semibold text-gray-900">${f.application_number}</td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-gray-800">${f.student_name}</div>
+              <div class="text-xs text-gray-500">${f.student_email || 'No email on file'}</div>
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <div class="font-semibold text-gray-800">${f.scheduled_date || f.visit_date}</div>
+              <div class="text-xs text-gray-500">${f.scheduled_time || f.visit_time || ''}</div>
+            </td>
+            <td class="py-3 px-4">
+              <span class="inline-block bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs">${f.purpose || 'Confirm Admission'}</span>
+            </td>
+            <td class="py-3 px-4">${studentEmailHtml}</td>
+            <td class="py-3 px-4">${coordEmailHtml}</td>
+            <td class="py-3 px-4">${statusBadge}</td>
+            <td class="py-3 px-4 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="viewApplication('${f.application_number}', '')" class="px-2.5 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded font-medium" title="View Application">
+                  View
+                </button>
+                ${!isCompleted ? `
+                  <button onclick="markFollowUpCompleted(${f.id})" class="px-2.5 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded font-medium" title="Mark as Completed">
+                    Mark Done
+                  </button>
+                ` : `
+                  <span class="text-xs text-gray-400 font-medium">Done</span>
+                `}
+                <button onclick="openFollowUpHistory('${f.application_number}', '${f.student_name}')" class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-medium" title="View History">
+                  History
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function markFollowUpCompleted(id) {
+      if (!confirm("Mark this student follow-up visit as completed?")) return;
+      try {
+        const res = await fetch('/complete_follow_up', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ follow_up_id: id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadFollowUps();
+          loadStudents();
+        } else {
+          alert("Error: " + (data.error || "Could not mark completed."));
+        }
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    }
+
+    async function retryNotification(notifId, currentEmail) {
+      const email = prompt("Confirm or update recipient email address to retry sending:", currentEmail || "");
+      if (email === null) return;
+
+      try {
+        const res = await fetch('/retry_email_notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notification_id: notifId, recipient_email: email })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("Email sent successfully!");
+          loadFollowUps();
+        } else {
+          alert("Failed to send: " + (data.error || "Unknown error"));
+          loadFollowUps();
+        }
+      } catch (e) {
+        alert("Error retrying email: " + e.message);
+      }
+    }
+
+    async function openFollowUpHistory(appNo, studentName) {
+      const modal = document.getElementById("historyModal");
+      const title = document.getElementById("historyModalTitle");
+      const timeline = document.getElementById("historyTimeline");
+
+      title.innerText = `Follow-up History: ${appNo} - ${studentName}`;
+      timeline.innerHTML = `<p class="text-gray-500 text-sm">Loading visit history...</p>`;
+      modal.classList.remove("hidden");
+
+      try {
+        const res = await fetch(`/api/follow_up/history/${appNo}`);
+        const data = await res.json();
+        const history = data.history || [];
+
+        if (history.length === 0) {
+          timeline.innerHTML = `<p class="text-gray-500 text-sm py-4">No follow-up visits recorded yet for this student.</p>`;
+          return;
+        }
+
+        timeline.innerHTML = "";
+        history.forEach((h, idx) => {
+          const dateStr = h.scheduled_date || h.visit_date || (h.scheduled_at ? h.scheduled_at.split(' ')[0] : '---');
+          const timeStr = h.scheduled_time || h.visit_time || '';
+          
+          let statusColor = "bg-blue-100 text-blue-800 border-blue-200";
+          if (h.status === 'completed') statusColor = "bg-green-100 text-green-800 border-green-200";
+          else if (h.status === 'missed') statusColor = "bg-amber-100 text-amber-800 border-amber-200";
+          else if (h.status === 'email_failed') statusColor = "bg-red-100 text-red-800 border-red-200";
+
+          timeline.innerHTML += `
+            <div class="border rounded-lg p-4 bg-gray-50">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-gray-800">Visit #${history.length - idx}: ${dateStr} ${timeStr}</span>
+                <span class="px-2 py-0.5 rounded text-xs font-semibold border ${statusColor}">${h.status || 'scheduled'}</span>
+              </div>
+              <div class="text-sm text-gray-700 mb-1"><strong>Purpose:</strong> ${h.purpose || 'Confirm Admission'}</div>
+              <div class="text-sm text-gray-600 mb-3 bg-white p-2.5 rounded border border-gray-200"><strong>Feedback:</strong> ${h.feedback || 'None'}</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-500 border-t pt-2">
+                <div>Student Email: <strong class="text-gray-700">${h.student_email_status || 'not scheduled'}</strong> ${h.student_email_sent_at ? `(${h.student_email_sent_at})` : ''}</div>
+                <div>Coordinator Email: <strong class="text-gray-700">${h.coordinator_email_status || 'not scheduled'}</strong> ${h.coordinator_email_sent_at ? `(${h.coordinator_email_sent_at})` : ''}</div>
+              </div>
+            </div>
+          `;
+        });
+      } catch (e) {
+        timeline.innerHTML = `<p class="text-red-500 text-sm">Failed to load history: ${e.message}</p>`;
+      }
+    }
+
+    function closeHistoryModal() {
+      document.getElementById("historyModal").classList.add("hidden");
     }
 
     document.getElementById("profileForm").addEventListener("submit", async function (e) {
@@ -474,102 +1161,180 @@
     };
 
     // Date checks and download functionalities
-    async function checkData(start, end) {
-      const res = await fetch(`/check_data?start_date=${start}&end_date=${end}`);
-      if (!res.ok) return false;
-      const data = await res.json();
-      return data.count > 0;
-    }
-
-    // Add this function: fetch students optionally filtered by date
-    async function fetchStudents() {
-      await searchStudents();
-    }
-
-    // Guard attaching listeners (elements may not exist)
-    document.addEventListener('DOMContentLoaded', function () {
-      const startEl = document.getElementById("startDate");
-      const endEl = document.getElementById("endDate");
-      const downloadExcelBtn = document.getElementById("downloadExcelBtn");
-      const downloadPdfBtn = document.getElementById("downloadPdfBtn");
-      const searchInput = document.getElementById('searchStudent');
-
-      // Load initial data
-      searchStudents();
-
-      if (startEl) startEl.addEventListener("change", fetchStudents);
-      if (endEl) endEl.addEventListener("change", fetchStudents);
-      if (downloadExcelBtn) downloadExcelBtn.addEventListener("click", async function () {
-        const startDate = startEl?.value; const endDate = endEl?.value;
-        if (!startDate || !endDate) { alert("Please select start and end dates."); return; }
-        const hasData = await checkData(startDate, endDate);
-        if (!hasData) { alert("No data found for the selected dates."); return; }
-        const chart = document.getElementById("pieChartOption")?.checked ? '1' : '0';
-        window.location.href = `/download_excel?start_date=${startDate}&end_date=${endDate}&chart=${chart}`;
-      });
-      if (downloadPdfBtn) downloadPdfBtn.addEventListener("click", async function () {
-        const startDate = startEl?.value; const endDate = endEl?.value;
-        if (!startDate || !endDate) { alert("Please select start and end dates."); return; }
-        const hasData = await checkData(startDate, endDate);
-        if (!hasData) { alert("No data found for the selected dates."); return; }
-        window.location.href = `/download_pdf?start_date=${startDate}&end_date=${endDate}`;
-      });
-      if (searchInput) searchInput.addEventListener('input', searchStudents);
-      const pieOpt = document.getElementById('pieChartOption');
-      if (pieOpt) pieOpt.addEventListener('change', () => renderCoordDeptPieChart());
-    });
-
-    // As-you-type search with backend API
-    async function searchStudents() {
-      const searchTerm = document.getElementById('searchStudent').value.trim();
+    async function checkData(start, end, search = '', status = 'all') {
       try {
-        const response = await fetch(`/search_students?term=${encodeURIComponent(searchTerm)}`);
-        const data = await response.json();
-        const tbody = document.getElementById('studentTableBody');
-        tbody.innerHTML = '';
-
-        const rows = (data.students || []);
-        renderCoordDeptPieChart(rows);
-        if (rows.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-gray-600">No data found</td></tr>`;
-          document.getElementById('totalAdmissions').innerText = students.filter(s => s.status === 'confirmed').length;
-          return;
-        }
-
-        rows.forEach(student => {
-          tbody.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${student.application_number || ''}</td>
-                        <td class="py-3 px-4">${student.student_name || ''}</td>
-                        <td class="py-3 px-4">${student.preferred_branch || ''}</td>
-                        <td class="py-3 px-4">${student.mobile || '-'}</td>
-                        <td class="py-3 px-4">${student.address || '-'}</td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                                onclick="viewApplication('${student.application_number}', '${student.status || ''}')">
-                                View
-                            </button>
-                            <a href="/download_application_pdf/${student.application_number}" target="_blank"
-                                class="bg-indigo-600 text-white px-3 py-1 rounded text-sm hover:bg-indigo-700 inline-block font-semibold">
-                                Download PDF
-                            </a>
-                        </td>
-                `;
-        });
-        document.getElementById('totalAdmissions').innerText = rows.filter(s => s.status === 'confirmed').length;
-      } catch (error) {
-        console.error('Error searching students:', error);
-        const tbody = document.getElementById('studentTableBody');
-        tbody.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-red-600">Error fetching data</td></tr>`;
+        const params = new URLSearchParams();
+        if (start) params.append('start_date', start);
+        if (end) params.append('end_date', end);
+        if (search) params.append('search', search);
+        if (status) params.append('status', status);
+        const res = await fetch(`/check_data?${params.toString()}`);
+        if (!res.ok) return false;
+        const data = await res.json();
+        return (data.count || 0) > 0;
+      } catch (e) {
+        return false;
       }
     }
 
-    // Smart view: show confirm form if status=confirmed, else normal form
+    async function loadCoordinatorNotifications() {
+      try {
+        const res = await fetch('/api/coordinator/follow_ups?status=all');
+        if (!res.ok) return;
+        const data = await res.json();
+        const followUps = data.follow_ups || [];
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const todayItems = followUps.filter(f => (f.scheduled_date === todayStr || (f.scheduled_at && f.scheduled_at.startsWith(todayStr))));
+        const upcomingItems = followUps.filter(f => f.status === 'scheduled' || f.status === 'email_sent');
+
+        const countEl = document.getElementById('notificationCount');
+        const listEl = document.getElementById('notificationList');
+        const dropEl = document.getElementById('notificationListDropdown');
+
+        if (countEl) countEl.innerText = todayItems.length;
+
+        let itemsHtml = '';
+        if (todayItems.length > 0) {
+          todayItems.slice(0, 5).forEach(f => {
+            itemsHtml += `<li class="text-xs py-1"><strong>${f.application_number}</strong>: Visit today with ${f.student_name} (${f.scheduled_time || 'Scheduled'})</li>`;
+          });
+        } else if (upcomingItems.length > 0) {
+          upcomingItems.slice(0, 3).forEach(f => {
+            itemsHtml += `<li class="text-xs py-1"><strong>${f.application_number}</strong>: Upcoming visit on ${f.scheduled_date} (${f.student_name})</li>`;
+          });
+        } else {
+          itemsHtml = '<li class="text-xs text-gray-500 py-1">No visit notifications for today.</li>';
+        }
+
+        if (listEl) listEl.innerHTML = itemsHtml;
+        if (dropEl) dropEl.innerHTML = itemsHtml;
+      } catch (e) {
+        console.error("Notifications load error:", e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const startEl = document.getElementById("startDate");
+      const endEl = document.getElementById("endDate");
+      const statusEl = document.getElementById("statusFilter");
+      const clearBtn = document.getElementById("clearDatesBtn");
+      const downloadExcelBtn = document.getElementById("downloadExcelBtn");
+      const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+      const searchInput = document.getElementById('searchStudent');
+      const pieOpt = document.getElementById('pieChartOption');
+
+      // Date filter events
+      if (startEl) {
+        startEl.addEventListener("change", refreshStudentsTable);
+        startEl.addEventListener("input", refreshStudentsTable);
+      }
+      if (endEl) {
+        endEl.addEventListener("change", refreshStudentsTable);
+        endEl.addEventListener("input", refreshStudentsTable);
+      }
+      if (statusEl) {
+        statusEl.addEventListener("change", refreshStudentsTable);
+      }
+      if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+          if (startEl) startEl.value = '';
+          if (endEl) endEl.value = '';
+          if (statusEl) statusEl.value = 'all';
+          refreshStudentsTable();
+        });
+      }
+
+      // Search student input
+      if (searchInput) {
+        searchInput.addEventListener('input', refreshStudentsTable);
+        searchInput.addEventListener('keyup', refreshStudentsTable);
+      }
+
+      // Department pie chart toggle
+      if (pieOpt) {
+        pieOpt.addEventListener('change', function () {
+          const { filtered } = filterStudentsData();
+          renderCoordDeptPieChart(filtered);
+        });
+      }
+
+      // Download Excel
+      if (downloadExcelBtn) {
+        downloadExcelBtn.addEventListener("click", async function () {
+          const startDate = startEl?.value || '';
+          const endDate = endEl?.value || '';
+          const statusVal = statusEl?.value || 'all';
+          const searchVal = searchInput?.value?.trim() || '';
+
+          if (!startDate && !endDate) {
+            alert("Please select a date or date range to download applications.");
+            return;
+          }
+
+          const hasData = await checkData(startDate, endDate, searchVal, statusVal);
+          if (!hasData) {
+            alert("No applications found for the selected dates.");
+            return;
+          }
+
+          const chart = pieOpt?.checked ? '1' : '0';
+          const params = new URLSearchParams();
+          if (startDate) params.append('start_date', startDate);
+          if (endDate) params.append('end_date', endDate);
+          if (chart) params.append('chart', chart);
+          if (searchVal) params.append('search', searchVal);
+          if (statusVal) params.append('status', statusVal);
+
+          window.location.href = `/download_excel?${params.toString()}`;
+        });
+      }
+
+      // Download PDF
+      if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener("click", async function () {
+          const startDate = startEl?.value || '';
+          const endDate = endEl?.value || '';
+          const statusVal = statusEl?.value || 'all';
+          const searchVal = searchInput?.value?.trim() || '';
+
+          if (!startDate && !endDate) {
+            alert("Please select a date or date range to download applications.");
+            return;
+          }
+
+          const hasData = await checkData(startDate, endDate, searchVal, statusVal);
+          if (!hasData) {
+            alert("No applications found for the selected dates.");
+            return;
+          }
+
+          const params = new URLSearchParams();
+          if (startDate) params.append('start_date', startDate);
+          if (endDate) params.append('end_date', endDate);
+          if (searchVal) params.append('search', searchVal);
+          if (statusVal) params.append('status', statusVal);
+
+          window.location.href = `/download_pdf?${params.toString()}`;
+        });
+      }
+    });
+
+    // Smart view: show confirm form if status=confirmed, else normal form in read-only view
     function viewApplication(appNumber, status) {
       if (status === 'confirmed') {
         window.open('/view_confirm_application?app_no=' + encodeURIComponent(appNumber), '_blank');
       } else {
-        window.location.href = '/application_form?view=' + encodeURIComponent(appNumber);
+        window.open('/application_form?view=' + encodeURIComponent(appNumber), '_blank');
+      }
+    }
+
+    // Edit application: open appropriate form with edit access
+    function editApplication(appNumber, status) {
+      if (status === 'confirmed') {
+        window.open('/conform_application/first.html?app_no=' + encodeURIComponent(appNumber), '_blank');
+      } else {
+        window.open('/application_form?edit=' + encodeURIComponent(appNumber), '_blank');
       }
     }
   </script>

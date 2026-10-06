@@ -2,12 +2,18 @@
 import mysql.connector
 import datetime
 import threading
+import os
 
-# Mocking app.py context
-DB_HOST = "localhost"
-DB_USER = "root"
-DB_PASSWORD = "gummallajithendra06@"
-DB_NAME = "project_db"
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_NAME = os.getenv("DB_NAME", "project_db")
 
 def format_app_number(year, num):
     return f"PEC{year}{num:03d}"

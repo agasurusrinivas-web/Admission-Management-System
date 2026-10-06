@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirm Application - {{ app_no }}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='PEC Logo.png') }}">
     <style>
         body {
             font-family: 'Times New Roman', serif;
@@ -219,10 +220,10 @@
 
     {% set d = form_data %}
     {% macro v(key, fallback='________________') %}{{ d.get(key, '') or fallback }}{% endmacro %}
-    {% macro chk(key) %}{{ '&#9745;' if d.get(key) in ['true', 'on', True] else '&#9744;' }}{% endmacro %}
-    {% macro rv(key) %}{{ d.get(key, '') or '&mdash;' }}{% endmacro %}
+    {% macro chk(key) %}{% if d.get(key) in ['true', 'on', True, 1, '1'] %}<span style="font-size: 14px; font-weight: bold; color: #15803d;">&#9745;</span>{% else %}<span style="font-size: 14px; color: #9ca3af;">&#9744;</span>{% endif %}{% endmacro %}
+    {% macro rv(key) %}{{ d.get(key, '') or '—' }}{% endmacro %}
     {% macro img_v(key, alt_text='Photo') %}
-    {% if d.get(key) and d.get(key).startswith('data:image') %}
+    {% if d.get(key) and (d.get(key).startswith('data:image') or d.get(key).startswith('/static/') or 'uploads' in d.get(key)) %}
     <br><img src="{{ d.get(key) }}" alt="{{ alt_text }}"
         style="max-height: 100px; max-width: 100px; border: 1px solid #777; border-radius: 4px; margin-top: 5px;">
     {% else %}
@@ -233,15 +234,17 @@
     <!-- ===== PAGE 1 ===== -->
     <div class="page page1-container">
         <div class="student-photo-box">
-            {% if d.get('photoInput') and d.get('photoInput').startswith('data:image') %}
+            {% if d.get('photoInput') and (d.get('photoInput').startswith('data:image') or d.get('photoInput').startswith('/static/') or 'uploads' in d.get('photoInput')) %}
             <img src="{{ d.get('photoInput') }}" alt="Student Photo">
+            {% elif d.get('advPhoto') and (d.get('advPhoto').startswith('data:image') or d.get('advPhoto').startswith('/static/') or 'uploads' in d.get('advPhoto')) %}
+            <img src="{{ d.get('advPhoto') }}" alt="Student Photo">
             {% else %}
             <span>Affix photograph here</span>
             {% endif %}
         </div>
 
         <div class="hdr" style="display: flex; align-items: center; justify-content: center; gap: 20px;">
-            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" style="width: 80px; height: 80px;">
+            <img src="{{ url_for('static', filename='PEC Logo.png') }}" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
             <div style="text-align: center;">
                 <h1>Prathyusha Engineering College</h1>
                 <p><b>AN AUTONOMOUS INSTITUTION</b> | ARANVOYALKUPPAM, POONAMALLEE, TIRUVALLUR-602 025.</p>

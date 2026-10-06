@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prathyusha Engineering College</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='PEC Logo.png') }}">
   <style>
     body {
       margin: 0;
@@ -94,7 +95,7 @@
   <div class="overlay"></div>
 
   <div class="logo">
-    <img src="/static/hlogo.jpg" alt="College Logo" id="logo">
+    <img src="{{ url_for('static', filename='PEC Logo.png') }}" alt="College Logo" id="logo">
   </div>
 
   <div class="buttons">

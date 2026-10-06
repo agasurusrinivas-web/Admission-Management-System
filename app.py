@@ -15,14 +15,28 @@ from reportlab.pdfgen import canvas
 
 import sqlite3
 
+# Try loading .env if dotenv is installed
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+from services.email_service import is_valid_email, send_test_email, send_coordinator_credentials_email
+from services.scheduler_service import (
+    start_scheduler, get_now_kolkata, parse_visit_datetime,
+    process_single_notification, check_and_process_due_emails
+)
+
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
+app.secret_key = os.getenv("SECRET_KEY", "your_secret_key")
 
 # Database Configuration
-DB_HOST = "localhost"
-DB_USER = "root" 
-DB_PASSWORD = "gummallajithendra06@" 
-DB_NAME = "project_db"
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_USER = os.getenv("DB_USER", "root") 
+DB_PASSWORD = os.getenv("DB_PASSWORD", "") 
+DB_NAME = os.getenv("DB_NAME", "project_db")
+
 
 # ---------------- SQLite Fallback Wrapper ----------------
 class SQLiteCursorWrapper:
@@ -97,17 +111,131 @@ class SQLiteConnWrapper:
     def close(self):
         self.conn.close()
 
-def create_db_connection():
+def ensure_db_schema(conn):
+    """
+    Ensure follow_ups, email_notifications tables and columns exist in active database.
+    Works for both MySQL and SQLite fallback.
+    """
     try:
-        return mysql.connector.connect(
+        cur = conn.cursor()
+        is_sqlite = isinstance(conn, SQLiteConnWrapper) or hasattr(conn, 'conn')
+        if is_sqlite:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS follow_ups (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    application_id INTEGER,
+                    application_number TEXT NOT NULL,
+                    coordinator_id INTEGER,
+                    coordinator_name TEXT,
+                    student_name TEXT,
+                    student_email TEXT,
+                    scheduled_date TEXT,
+                    scheduled_time TEXT,
+                    visit_date TEXT,
+                    visit_time TEXT,
+                    scheduled_at TEXT NOT NULL,
+                    purpose TEXT,
+                    feedback TEXT,
+                    reminder_setting TEXT DEFAULT 'at_event',
+                    status TEXT DEFAULT 'scheduled',
+                    notes TEXT,
+                    created_at TEXT,
+                    updated_at TEXT,
+                    completed_at TEXT
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS email_notifications (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    follow_up_id INTEGER,
+                    application_number TEXT,
+                    recipient_type TEXT,
+                    recipient_email TEXT,
+                    subject TEXT,
+                    scheduled_at TEXT,
+                    sent_at TEXT,
+                    status TEXT DEFAULT 'scheduled',
+                    error_message TEXT,
+                    created_at TEXT
+                )
+            """)
+            cur.execute("PRAGMA table_info(follow_ups)")
+            f_cols = [c['name'] if isinstance(c, dict) else c[1] for c in cur.fetchall()]
+            for needed in ['application_id', 'student_email', 'scheduled_date', 'scheduled_time']:
+                if needed not in f_cols:
+                    try:
+                        cur.execute(f"ALTER TABLE follow_ups ADD COLUMN {needed} TEXT")
+                    except Exception:
+                        pass
+        else:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS follow_ups (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    application_id INT NULL,
+                    application_number VARCHAR(50) NOT NULL,
+                    coordinator_id INT NULL,
+                    coordinator_name VARCHAR(100) NULL,
+                    student_name VARCHAR(255) NULL,
+                    student_email VARCHAR(255) NULL,
+                    scheduled_date VARCHAR(50) NULL,
+                    scheduled_time VARCHAR(50) NULL,
+                    visit_date VARCHAR(50) NULL,
+                    visit_time VARCHAR(50) NULL,
+                    scheduled_at VARCHAR(50) NOT NULL,
+                    purpose VARCHAR(255) NULL,
+                    feedback TEXT NULL,
+                    reminder_setting VARCHAR(50) DEFAULT 'at_event',
+                    status VARCHAR(50) DEFAULT 'scheduled',
+                    notes TEXT NULL,
+                    created_at VARCHAR(50) NULL,
+                    updated_at VARCHAR(50) NULL,
+                    completed_at VARCHAR(50) NULL
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS email_notifications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    follow_up_id INT,
+                    application_number VARCHAR(50),
+                    recipient_type VARCHAR(50),
+                    recipient_email VARCHAR(255),
+                    subject VARCHAR(255),
+                    scheduled_at VARCHAR(50),
+                    sent_at VARCHAR(50),
+                    status VARCHAR(50) DEFAULT 'scheduled',
+                    error_message TEXT,
+                    created_at VARCHAR(50)
+                )
+            """)
+        conn.commit()
+    except Exception as e:
+        print(f"[Schema Init Info] {e}")
+
+_db_initialized = False
+
+def create_db_connection():
+    global _db_initialized
+    conn = None
+    try:
+        conn = mysql.connector.connect(
             host=DB_HOST,
             user=DB_USER,
             password=DB_PASSWORD,
-            database=DB_NAME
+            database=DB_NAME,
+            connection_timeout=2
         )
+        if not _db_initialized:
+            print(f"[Database] Successfully connected to MySQL database '{DB_NAME}' on {DB_HOST}.")
     except Exception as e:
+        if not _db_initialized:
+            print(f"[Database Warning] MySQL connection failed ({e}). Using SQLite fallback (users.db).")
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.db')
-        return SQLiteConnWrapper(db_path)
+        conn = SQLiteConnWrapper(db_path)
+
+    if not _db_initialized and conn:
+        ensure_db_schema(conn)
+        _db_initialized = True
+    return conn
 
 # ---------------- Database Connection ----------------
 def get_db():
@@ -512,75 +640,645 @@ def coordinator_dashboard():
         'coordinator_dashboard.html',
         coordinator_data=coordinator_data
     )
-# ...existing code...
+# ---------------- Follow-up and Email Helpers ----------------
+def extract_student_email_from_form_data(form_data_raw):
+    """
+    Safely extract candidate/student email address from application form_data JSON.
+    Checks student_email, email, candidate_email, father_email, mother_email.
+    """
+    if not form_data_raw:
+        return ""
+    data = {}
+    if isinstance(form_data_raw, str):
+        try:
+            data = json.loads(form_data_raw)
+        except Exception:
+            data = {}
+    elif isinstance(form_data_raw, dict):
+        data = form_data_raw
+
+    for key in ("student_email", "email", "candidate_email", "candEmail", "father_email", "mother_email"):
+        val = data.get(key)
+        if val and isinstance(val, str) and "@" in val:
+            cleaned = val.strip()
+            if is_valid_email(cleaned):
+                return cleaned
+    return ""
+
+def resolve_coordinator_for_application(app_row, cur):
+    """
+    Resolve coordinator details (id, name, email) assigned to the student application.
+    Prioritizes the actual coordinator assigned to that application (Section 3).
+    """
+    app_coord_str = (app_row.get('coordinator') or '').strip() if isinstance(app_row, dict) else ''
+    coord_id = None
+    coord_name = app_coord_str
+    coord_email = None
+
+    if app_coord_str and cur:
+        cur.execute("""
+            SELECT id, first_name, last_name, email 
+            FROM coordinators 
+            WHERE TRIM(first_name) = %s 
+               OR TRIM(CONCAT(first_name, ' ', last_name)) = %s
+               OR TRIM(first_name) LIKE %s
+            LIMIT 1
+        """, (app_coord_str, app_coord_str, f"{app_coord_str}%"))
+        c_row = cur.fetchone()
+        if c_row:
+            coord_id = c_row.get('id')
+            c_fn = (c_row.get('first_name') or '').strip()
+            c_ln = (c_row.get('last_name') or '').strip()
+            coord_name = f"{c_fn} {c_ln}".strip() or app_coord_str
+            coord_email = (c_row.get('email') or '').strip()
+
+    # Fallback to session coordinator if matching or unassigned
+    if not coord_email and 'coordinator_id' in session:
+        session_name = (session.get('coordinator_name') or '').strip()
+        if not app_coord_str or (session_name and app_coord_str.lower() in session_name.lower()):
+            coord_id = session.get('coordinator_id')
+            coord_name = session_name or coord_name
+            coord_email = (session.get('coordinator_email') or '').strip()
+
+    return coord_id, coord_name, coord_email
+
+def normalize_date_to_iso(date_str):
+    """
+    Standardize date strings to ISO YYYY-MM-DD format regardless of format or time part.
+    Handles YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY, and datetime strings.
+    """
+    if not date_str:
+        return None
+    s = str(date_str).strip()
+    if not s or s in ['---', '-', 'null', 'None']:
+        return None
+    import re
+    # If starts with YYYY-MM-DD or YYYY/MM/DD
+    m_iso = re.match(r'^(\d{4})[-/](\d{1,2})[-/](\d{1,2})', s)
+    if m_iso:
+        y, m, d = m_iso.groups()
+        return f"{int(y):04d}-{int(m):02d}-{int(d):02d}"
+    # If DD-MM-YYYY or DD/MM/YYYY
+    m_dmy = re.match(r'^(\d{1,2})[-/](\d{1,2})[-/](\d{4})', s)
+    if m_dmy:
+        d, m, y = m_dmy.groups()
+        return f"{int(y):04d}-{int(m):02d}-{int(d):02d}"
+    return None
+
+def is_application_pending(status):
+    """
+    Return True if application is still pending/remaining in admission process.
+    Completed, confirmed, cancelled, rejected, or admitted applications return False.
+    """
+    if not status:
+        return True
+    s = str(status).strip().lower()
+    finished_statuses = {'confirmed', 'completed', 'cancelled', 'rejected', 'admitted'}
+    return s not in finished_statuses
+
+def get_application_action_date(app_dict):
+    """
+    Determine relevant admission/visit/follow-up action date for an application.
+    Prioritizes upcoming next_visit, then initial visit/submitted date, then opened date.
+    """
+    next_visit = app_dict.get('next_visit')
+    if next_visit:
+        d = normalize_date_to_iso(next_visit)
+        if d:
+            return d
+    date_sub = app_dict.get('date_submitted')
+    if date_sub:
+        d = normalize_date_to_iso(date_sub)
+        if d:
+            return d
+    date_op = app_dict.get('date_opened')
+    if date_op:
+        d = normalize_date_to_iso(date_op)
+        if d:
+            return d
+    return None
+
+def get_application_dates(a):
+    """
+    Collect all relevant dates associated with an application (submission date, next visit, opened date).
+    """
+    dates = []
+    for k in ('date_submitted', 'next_visit', 'date_opened'):
+        d = normalize_date_to_iso(a.get(k))
+        if d:
+            dates.append(d)
+    rel = a.get('relevant_action_date')
+    if rel:
+        dates.append(rel)
+    return list(dict.fromkeys(dates))
+
+def filter_coordinator_applications(apps, start_date=None, end_date=None, search=None, status_filter='all'):
+    """
+    Filter coordinator applications for a particular time period or single day.
+    Shows all application details by default, or filtered by status ('all', 'pending', 'confirmed').
+    """
+    norm_start = normalize_date_to_iso(start_date) if start_date else None
+    norm_end = normalize_date_to_iso(end_date) if end_date else None
+    
+    # If user selected only From Date (single day), treat as that day
+    if norm_start and not norm_end:
+        norm_end = norm_start
+
+    has_date_filter = bool(norm_start or norm_end)
+    search_q = (search or '').strip().lower()
+    st_filter = (status_filter or 'all').strip().lower()
+
+    filtered = []
+    for a in apps:
+        # Date matching: check if any relevant date falls in the range
+        if has_date_filter:
+            dates = get_application_dates(a)
+            matched = False
+            for d in dates:
+                if norm_start and norm_end and norm_start <= d <= norm_end:
+                    matched = True; break
+                elif norm_start and not norm_end and d >= norm_start:
+                    matched = True; break
+                elif norm_end and not norm_start and d <= norm_end:
+                    matched = True; break
+            if not matched:
+                continue
+
+        # Status filtering (default 'all' shows all applications)
+        st = str(a.get('status') or '').strip().lower()
+        if st_filter == 'pending' and not is_application_pending(st):
+            continue
+        elif st_filter == 'confirmed' and st != 'confirmed':
+            continue
+
+        # Search query
+        if search_q:
+            app_no = str(a.get('application_number') or '').lower()
+            name = str(a.get('student_name') or '').lower()
+            father = str(a.get('father_name') or '').lower()
+            dept = str(a.get('preferred_branch') or '').lower()
+            mobile = str(a.get('mobile') or '').lower()
+            if not (search_q in app_no or search_q in name or search_q in father or search_q in dept or search_q in mobile):
+                continue
+
+        filtered.append(a)
+
+    return filtered
+
+def fetch_coordinator_applications_records(cur, coord_name):
+    """
+    Fetch and format all application records assigned to the given coordinator.
+    Handles fallbacks to form_data JSON if fields are stored inside JSON.
+    """
+    if not coord_name:
+        return []
+    coord_name = coord_name.strip()
+    coord_first = coord_name.split()[0] if coord_name else ''
+    cur.execute("""
+        SELECT application_number, student_name, father_name, preferred_branch,
+               mobile, address, status, date_submitted, date_opened, form_data, feedback, next_visit, coordinator
+        FROM applications
+        WHERE (TRIM(coordinator) = %s 
+           OR coordinator = %s 
+           OR TRIM(coordinator) = %s 
+           OR TRIM(coordinator) LIKE %s)
+    """, (coord_name, coord_name, coord_first, f"{coord_first}%"))
+    rows = cur.fetchall()
+    
+    apps = []
+    for r in rows:
+        rd = dict(r)
+        form_json = None
+        if rd.get('form_data'):
+            try:
+                form_json = json.loads(rd['form_data'])
+            except Exception:
+                form_json = None
+        student_email = extract_student_email_from_form_data(rd.get('form_data'))
+        action_date = get_application_action_date(rd)
+        apps.append({
+            "application_number": rd.get('application_number') or "",
+            "student_name": rd.get('student_name') or (form_json.get('student_name') if form_json else "") or (form_json.get('candName') if form_json else ""),
+            "father_name": rd.get('father_name') or (form_json.get('father_name') if form_json else "") or (form_json.get('fatherName') if form_json else ""),
+            "preferred_branch": rd.get('preferred_branch') or (form_json.get('preferred_branch') if form_json else "") or (form_json.get('branch') if form_json else ""),
+            "mobile": rd.get('mobile') or (form_json.get('mobile') if form_json else "") or (form_json.get('studentMobile') if form_json else ""),
+            "email": student_email,
+            "address": rd.get('address') or (form_json.get('address') if form_json else "") or (form_json.get('permanentAddress') if form_json else ""),
+            "status": rd.get('status'),
+            "date_submitted": str(rd.get('date_submitted') or '') or (form_json.get('date_submitted') if form_json else ''),
+            "date_opened": str(rd.get('date_opened') or ''),
+            "feedback": rd.get('feedback'),
+            "next_visit": rd.get('next_visit'),
+            "relevant_action_date": action_date,
+            "is_pending": is_application_pending(rd.get('status')),
+            "coordinator": rd.get('coordinator')
+        })
+    return apps
+
 @app.route('/get_coordinator_applications')
 def get_coordinator_applications():
     """
     Return JSON list of applications for the logged-in coordinator.
+    Supports optional start_date, end_date, search, and status filtering for that day or time period.
     """
     if 'coordinator_id' not in session:
-        return jsonify({"applications": []}), 200
+        return jsonify({"applications": [], "students": []}), 200
+
+    db = get_db()
+    cur = db.cursor(dictionary=True)
+    try:
+        coord_name = session.get('coordinator_name', '').strip()
+        apps = fetch_coordinator_applications_records(cur, coord_name)
+
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        search = request.args.get('search') or request.args.get('term')
+        status_filter = request.args.get('status') or request.args.get('status_filter') or 'all'
+
+        if start_date or end_date or search or (status_filter and status_filter != 'all'):
+            apps = filter_coordinator_applications(apps, start_date=start_date, end_date=end_date, search=search, status_filter=status_filter)
+
+        return jsonify({"applications": apps, "students": apps}), 200
+    except Exception as e:
+        return jsonify({"error": str(e), "applications": [], "students": []}), 500
+
+
+
+@app.route('/save_feedback', methods=['POST'])
+def save_feedback():
+    """
+    Coordinator Follow-up and Feedback endpoint.
+    Records feedback, next visit date/time, purpose, and schedules reminder emails
+    to both student and the assigned coordinator.
+    """
+    if 'coordinator_id' not in session and 'admin_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(silent=True) or request.form.to_dict() or {}
+    app_no = (data.get('application_number') or '').strip()
+    feedback = (data.get('feedback') or '').strip()
+    visit_date = (data.get('visit_date') or data.get('next_visit_date') or data.get('next_visit') or '').strip()
+    visit_time = (data.get('visit_time') or data.get('next_visit_time') or '10:30 AM').strip()
+    purpose = (data.get('purpose') or 'Confirm Admission').strip()
+    provided_email = (data.get('student_email') or '').strip()
+
+    if not app_no or not feedback:
+        return jsonify({"error": "Please provide both Application Number and Feedback."}), 400
+
+    db = get_db()
+    cur = db.cursor(dictionary=True)
+    try:
+        # Check application exists
+        cur.execute("""
+            SELECT id, application_number, student_name, coordinator, form_data, status
+            FROM applications 
+            WHERE application_number = %s
+        """, (app_no,))
+        app_row = cur.fetchone()
+        if not app_row:
+            return jsonify({"error": f"Application '{app_no}' not found."}), 404
+
+        now_kolkata = get_now_kolkata()
+        now_str = now_kolkata.strftime('%Y-%m-%d %H:%M:%S')
+
+        # Student Name resolution
+        student_name = (app_row.get('student_name') or '').strip()
+        form_data_raw = app_row.get('form_data')
+        form_data_dict = {}
+        if form_data_raw:
+            try:
+                form_data_dict = json.loads(form_data_raw) if isinstance(form_data_raw, str) else form_data_raw
+            except Exception:
+                form_data_dict = {}
+        if not student_name:
+            student_name = form_data_dict.get('student_name') or form_data_dict.get('candName') or "Student"
+
+        # Student Email resolution
+        if provided_email and is_valid_email(provided_email):
+            student_email = provided_email
+            if not form_data_dict.get('email') and not form_data_dict.get('student_email'):
+                form_data_dict['email'] = student_email
+                cur.execute("UPDATE applications SET form_data = %s WHERE application_number = %s",
+                            (json.dumps(form_data_dict), app_no))
+        else:
+            student_email = extract_student_email_from_form_data(form_data_raw)
+
+        # Coordinator Email resolution (assigned coordinator from application)
+        coord_id, coord_name, coord_email = resolve_coordinator_for_application(app_row, cur)
+
+        follow_up_id = None
+        student_warning = None
+        student_email_status = "none"
+        coord_email_status = "none"
+
+        # If visit_date is provided, create follow_up and schedule emails
+        if visit_date:
+            scheduled_dt = parse_visit_datetime(visit_date, visit_time)
+            if not scheduled_dt:
+                return jsonify({"error": "Invalid Next Visit Date or Time format."}), 400
+
+            # Section 1 validation: Check if scheduled date/time is in the past (allow 5-minute buffer)
+            if scheduled_dt < (now_kolkata - datetime.timedelta(minutes=5)):
+                return jsonify({"error": "Next visit date and time cannot be in the past."}), 400
+
+            scheduled_at_str = scheduled_dt.strftime('%Y-%m-%d %H:%M:%S')
+
+            # Insert into follow_ups table
+            cur.execute("""
+                INSERT INTO follow_ups (
+                    application_id, application_number, coordinator_id, coordinator_name,
+                    student_name, student_email, scheduled_date, scheduled_time,
+                    visit_date, visit_time, scheduled_at, purpose, feedback, status,
+                    created_at, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'scheduled', %s, %s)
+            """, (
+                app_row.get('id'), app_no, coord_id, coord_name,
+                student_name, student_email, visit_date, visit_time,
+                visit_date, visit_time, scheduled_at_str, purpose, feedback,
+                now_str, now_str
+            ))
+            follow_up_id = cur.lastrowid
+
+            # Create Student Email Notification Record (Section 5)
+            student_subj = f"Admission Follow-up Reminder – {app_no}"
+            if student_email and is_valid_email(student_email):
+                cur.execute("""
+                    INSERT INTO email_notifications (
+                        follow_up_id, application_number, recipient_type, recipient_email,
+                        subject, scheduled_at, status, created_at
+                    ) VALUES (%s, %s, 'student', %s, %s, %s, 'scheduled', %s)
+                """, (follow_up_id, app_no, student_email, student_subj, scheduled_at_str, now_str))
+                student_email_status = "scheduled"
+            else:
+                # Student email missing: do not crash! Record safely as email_failed
+                cur.execute("""
+                    INSERT INTO email_notifications (
+                        follow_up_id, application_number, recipient_type, recipient_email,
+                        subject, scheduled_at, status, error_message, created_at
+                    ) VALUES (%s, %s, 'student', %s, %s, %s, 'email_failed', %s, %s)
+                """, (follow_up_id, app_no, student_email or '', student_subj, scheduled_at_str,
+                      "Student email address missing from application records.", now_str))
+                student_email_status = "email_failed"
+                student_warning = "Student email address is missing from application records. Coordinator reminder scheduled, but student reminder cannot be delivered until student email is added."
+
+            # Create Coordinator Email Notification Record (Section 5)
+            coord_subj = f"Student Follow-up Reminder – {student_name} – {app_no}"
+            if coord_email and is_valid_email(coord_email):
+                cur.execute("""
+                    INSERT INTO email_notifications (
+                        follow_up_id, application_number, recipient_type, recipient_email,
+                        subject, scheduled_at, status, created_at
+                    ) VALUES (%s, %s, 'coordinator', %s, %s, %s, 'scheduled', %s)
+                """, (follow_up_id, app_no, coord_email, coord_subj, scheduled_at_str, now_str))
+                coord_email_status = "scheduled"
+            else:
+                cur.execute("""
+                    INSERT INTO email_notifications (
+                        follow_up_id, application_number, recipient_type, recipient_email,
+                        subject, scheduled_at, status, error_message, created_at
+                    ) VALUES (%s, %s, 'coordinator', %s, %s, %s, 'email_failed', %s, %s)
+                """, (follow_up_id, app_no, coord_email or '', coord_subj, scheduled_at_str,
+                      "Coordinator email address missing.", now_str))
+                coord_email_status = "email_failed"
+
+        # Backward compatibility: update applications table fields
+        nv_text = f"{visit_date} {visit_time}".strip() if visit_date else None
+        cur.execute("UPDATE applications SET feedback = %s, next_visit = %s WHERE application_number = %s",
+                    (feedback, nv_text, app_no))
+        db.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Feedback recorded and follow-up scheduled successfully!",
+            "warning": student_warning,
+            "follow_up_id": follow_up_id,
+            "student_email": student_email,
+            "coordinator_email": coord_email,
+            "student_email_status": student_email_status,
+            "coordinator_email_status": coord_email_status
+        }), 200
+
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": f"Failed to save follow-up: {str(e)}"}), 500
+
+
+@app.route('/complete_follow_up', methods=['POST'])
+def complete_follow_up():
+    """
+    Mark a follow-up as completed (Section 18).
+    """
+    if 'coordinator_id' not in session and 'admin_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json() or {}
+    follow_up_id = data.get('follow_up_id')
+    if not follow_up_id:
+        return jsonify({"error": "Missing follow_up_id"}), 400
+
+    now_kolkata = get_now_kolkata()
+    now_str = now_kolkata.strftime('%Y-%m-%d %H:%M:%S')
+
+    db = get_db()
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            UPDATE follow_ups 
+            SET status = 'completed', completed_at = %s, updated_at = %s
+            WHERE id = %s
+        """, (now_str, now_str, follow_up_id))
+        db.commit()
+        return jsonify({"success": True, "message": "Follow-up marked as completed."}), 200
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/retry_email_notification', methods=['POST'])
+def retry_email_notification():
+    """
+    Retry sending a failed email notification safely (Section 15).
+    """
+    if 'coordinator_id' not in session and 'admin_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json() or {}
+    notif_id = data.get('notification_id')
+    new_email = (data.get('recipient_email') or '').strip()
+
+    if not notif_id:
+        return jsonify({"error": "Missing notification_id"}), 400
+
+    db = get_db()
+    cur = db.cursor(dictionary=True)
+    try:
+        if new_email and is_valid_email(new_email):
+            cur.execute("UPDATE email_notifications SET recipient_email = %s, status = 'scheduled' WHERE id = %s",
+                        (new_email, notif_id))
+            db.commit()
+
+        success, err = process_single_notification(db, notif_id)
+        if success:
+            return jsonify({"success": True, "message": "Email sent successfully!"}), 200
+        else:
+            return jsonify({"success": False, "error": err or "Failed to send email."}), 200
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/coordinator/follow_ups')
+def get_coordinator_followups():
+    """
+    Retrieve follow-ups for the logged-in coordinator (Section 14).
+    Supports filters: all, upcoming, today, completed, missed, email_failed.
+    """
+    if 'coordinator_id' not in session and 'admin_id' not in session:
+        return jsonify({"error": "Unauthorized", "follow_ups": []}), 401
+
+    db = get_db()
+    cur = db.cursor(dictionary=True)
+    try:
+        coord_name = (session.get('coordinator_name') or '').strip()
+        coord_id = session.get('coordinator_id')
+        filter_status = request.args.get('status', 'all').lower()
+
+        sql = """
+            SELECT f.id, f.application_number, f.student_name, f.student_email,
+                   f.coordinator_name, f.scheduled_date, f.scheduled_time, f.visit_date, f.visit_time,
+                   f.scheduled_at, f.purpose, f.feedback, f.status, f.created_at, f.completed_at,
+                   sn.id as student_notif_id, sn.status as student_email_status, sn.error_message as student_email_error,
+                   cn.id as coord_notif_id, cn.status as coordinator_email_status, cn.error_message as coord_email_error
+            FROM follow_ups f
+            LEFT JOIN email_notifications sn ON sn.follow_up_id = f.id AND sn.recipient_type = 'student'
+            LEFT JOIN email_notifications cn ON cn.follow_up_id = f.id AND cn.recipient_type = 'coordinator'
+        """
+        params = []
+        if 'coordinator_id' in session and 'admin_id' not in session:
+            sql += " WHERE (f.coordinator_id = %s OR TRIM(f.coordinator_name) = %s OR f.coordinator_name = %s OR TRIM(f.coordinator_name) = %s) "
+            params.extend([coord_id, coord_name, coord_name, coord_name.split()[0] if coord_name else ''])
+
+        sql += " ORDER BY f.scheduled_at DESC, f.id DESC"
+        cur.execute(sql, tuple(params))
+        rows = cur.fetchall()
+
+        now_kolkata = get_now_kolkata()
+        today_str = now_kolkata.strftime('%Y-%m-%d')
+
+        items = []
+        for r in rows:
+            rd = dict(r)
+            s_at = rd.get('scheduled_at') or ''
+            s_date = rd.get('scheduled_date') or rd.get('visit_date') or (s_at.split()[0] if s_at else '')
+            f_status = rd.get('status') or 'scheduled'
+            
+            # Filter handling
+            if filter_status == 'upcoming' and f_status not in ('scheduled', 'email_sent'):
+                continue
+            elif filter_status == 'today' and s_date != today_str:
+                continue
+            elif filter_status == 'completed' and f_status != 'completed':
+                continue
+            elif filter_status == 'missed' and f_status != 'missed':
+                continue
+            elif filter_status == 'email_failed' and (rd.get('student_email_status') != 'email_failed' and rd.get('coordinator_email_status') != 'email_failed' and f_status != 'email_failed'):
+                continue
+
+            items.append(rd)
+
+        return jsonify({"follow_ups": items}), 200
+    except Exception as e:
+        return jsonify({"error": str(e), "follow_ups": []}), 500
+
+
+@app.route('/api/follow_up/history/<app_no>')
+def get_followup_history(app_no):
+    """
+    Retrieve all historical follow-ups for a student application (Section 17).
+    """
+    if 'coordinator_id' not in session and 'admin_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
 
     db = get_db()
     cur = db.cursor(dictionary=True)
     try:
         cur.execute("""
-            SELECT application_number, student_name, father_name, preferred_branch,
-                   mobile, address, status, date_submitted, form_data, feedback, next_visit
-            FROM applications
-            WHERE coordinator = %s AND status IN ('visited', 'confirmed')
-        """, (session.get('coordinator_name', ''),))
+            SELECT f.*, 
+                   sn.id as student_notif_id, sn.status as student_email_status, sn.sent_at as student_email_sent_at, sn.error_message as student_email_error,
+                   cn.id as coord_notif_id, cn.status as coordinator_email_status, cn.sent_at as coordinator_email_sent_at, cn.error_message as coordinator_email_error
+            FROM follow_ups f
+            LEFT JOIN email_notifications sn ON sn.follow_up_id = f.id AND sn.recipient_type = 'student'
+            LEFT JOIN email_notifications cn ON cn.follow_up_id = f.id AND cn.recipient_type = 'coordinator'
+            WHERE f.application_number = %s
+            ORDER BY f.id DESC
+        """, (app_no,))
         rows = cur.fetchall()
-        
-        apps = []
-        for r in rows:
-            rd = dict(r)
-            # parse form_data JSON if present
-            form_json = None
-            if rd.get('form_data'):
-                try:
-                    form_json = json.loads(rd['form_data'])
-                except Exception:
-                    form_json = None
-            apps.append({
-                "application_number": rd.get('application_number') or "",
-                "student_name": rd.get('student_name') or (form_json.get('student_name') if form_json else "") ,
-                "father_name": rd.get('father_name') or (form_json.get('father_name') if form_json else ""),
-                "preferred_branch": rd.get('preferred_branch') or (form_json.get('preferred_branch') if form_json else ""),
-                "mobile": rd.get('mobile') or (form_json.get('mobile') if form_json else ""),
-                "address": rd.get('address') or (form_json.get('address') if form_json else ""),
-                "status": rd.get('status'),
-                "date_submitted": rd.get('date_submitted'),
-                "feedback": rd.get('feedback'),
-                "next_visit": rd.get('next_visit')
-            })
-        return jsonify({"applications": apps}), 200
+        return jsonify({"history": [dict(r) for r in rows]}), 200
     except Exception as e:
-        return jsonify({"error": str(e), "applications": []}), 500
+        return jsonify({"error": str(e), "history": []}), 500
 
 
-@app.route('/save_feedback', methods=['POST'])
-def save_feedback():
-    if 'coordinator_id' not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    data = request.get_json()
-    app_no = data.get('application_number')
-    feedback = data.get('feedback')
-    next_visit = data.get('next_visit')
-
-    if not app_no or not feedback:
-         return jsonify({"error": "Missing fields"}), 400
+@app.route('/api/admin/follow_ups')
+def get_admin_followups():
+    """
+    Retrieve all follow-ups system-wide for Admin Monitoring (Section 16).
+    """
+    if 'admin_id' not in session:
+        return jsonify({"error": "Unauthorized", "follow_ups": []}), 401
 
     db = get_db()
-    cur = db.cursor()
+    cur = db.cursor(dictionary=True)
     try:
-        cur.execute("UPDATE applications SET feedback=%s, next_visit=%s WHERE application_number=%s", 
-                   (feedback, next_visit, app_no))
-        db.commit()
-        return jsonify({"success": True}), 200
+        cur.execute("""
+            SELECT f.id, f.application_number, f.student_name, f.student_email,
+                   f.coordinator_name, f.scheduled_date, f.scheduled_time, f.visit_date, f.visit_time,
+                   f.scheduled_at, f.purpose, f.feedback, f.status, f.created_at, f.completed_at,
+                   sn.id as student_notif_id, sn.status as student_email_status, sn.error_message as student_email_error,
+                   cn.id as coord_notif_id, cn.status as coordinator_email_status, cn.error_message as coord_email_error
+            FROM follow_ups f
+            LEFT JOIN email_notifications sn ON sn.follow_up_id = f.id AND sn.recipient_type = 'student'
+            LEFT JOIN email_notifications cn ON cn.follow_up_id = f.id AND cn.recipient_type = 'coordinator'
+            ORDER BY f.scheduled_at DESC, f.id DESC
+        """)
+        rows = cur.fetchall()
+        return jsonify({"follow_ups": [dict(r) for r in rows]}), 200
+    except Exception as e:
+        return jsonify({"error": str(e), "follow_ups": []}), 500
+
+
+@app.route('/api/admin/send_test_email', methods=['POST'])
+def admin_send_test_email():
+    """
+    Safe test email mechanism for Admin SMTP verification (Section 24).
+    """
+    if 'admin_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json() or {}
+    to_email = (data.get('email') or '').strip()
+    if not to_email or not is_valid_email(to_email):
+        return jsonify({"error": "Please provide a valid recipient email address."}), 400
+
+    success, err = send_test_email(to_email)
+    if success:
+        return jsonify({"success": True, "message": f"Test email successfully sent to {to_email}!"}), 200
+    else:
+        return jsonify({"success": False, "error": err or "Failed to send test email."}), 400
+
+
+@app.route('/api/scheduler/run_check', methods=['POST'])
+def api_trigger_scheduler_check():
+    """
+    Trigger manual scheduler tick for immediate processing/testing.
+    """
+    if 'admin_id' not in session and 'coordinator_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    try:
+        due = check_and_process_due_emails(create_db_connection)
+        return jsonify({"success": True, "processed": due}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/delete_feedback', methods=['POST'])
@@ -913,7 +1611,7 @@ def save_application():
     try:
         # Check if application exists
         cursor.execute("""
-            SELECT id FROM applications 
+            SELECT id, status FROM applications 
             WHERE application_number = %s
         """, (data['application_number'],))
         exists = cursor.fetchone()
@@ -921,7 +1619,8 @@ def save_application():
         now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         if exists:
-            # Try update with full schema
+            # Preserve existing status unless explicitly specified
+            effective_status = data.get('status') or exists.get('status') or new_status
             cursor.execute("""
                 UPDATE applications 
                 SET student_name = %s,
@@ -940,7 +1639,7 @@ def save_application():
                 preferred_branch,
                 mobile,
                 address,
-                new_status,
+                effective_status,
                 json.dumps(data.get('form_data')) if data.get('form_data') else None,
                 now_str, # Update last_modified
                 now_str, # Set date_submitted if null
@@ -1038,7 +1737,12 @@ def application_form():
     view_app_number = request.args.get('view')
     if view_app_number:
         # View mode: just render form with this number. Frontend will fetch data.
-        return render_template('form.html', app_number=view_app_number, view_mode=True)
+        return render_template('form.html', app_number=view_app_number, view_mode=True, edit_mode=False)
+
+    edit_app_number = request.args.get('edit')
+    if edit_app_number:
+        # Edit mode: render form with this number for editing. Frontend will fetch data.
+        return render_template('form.html', app_number=edit_app_number, view_mode=False, edit_mode=True)
 
     try:
         # PReview next number but do not reserve
@@ -1441,20 +2145,68 @@ def admin_coordinators():
         return jsonify(result)
 
     if request.method == 'POST':
-        data = request.get_json()
+        data = request.get_json() or {}
+        coord_email = (data.get('email') or '').strip()
+        username = (data.get('username') or '').strip()
+        password = str(data.get('password') or '').strip()
+
+        if not coord_email or not username or not password:
+            return jsonify({"error": "Email, Username, and Password are required."}), 400
+
+        if not is_valid_email(coord_email):
+            return jsonify({"error": f"Invalid email address: '{coord_email}'"}), 400
+
         try:
-            cur = db.cursor()
+            cur = db.cursor(dictionary=True) if hasattr(db, 'cursor') else db.cursor()
+            # Check for duplicate email before insert
+            cur.execute("SELECT id, first_name, last_name FROM coordinators WHERE email = %s", (coord_email,))
+            existing = cur.fetchone()
+            if existing:
+                return jsonify({
+                    "error": f"A coordinator with email '{coord_email}' already exists in the system. Please use a different email or delete/edit the existing coordinator."
+                }), 400
+
             # Split name safely
-            parts = data.get('username', '').split(' ', 1)
+            parts = username.split(' ', 1)
             fname = parts[0]
             lname = parts[1] if len(parts) > 1 else ''
             
             cur.execute("INSERT INTO coordinators (first_name, last_name, email, phone, password, work) VALUES (%s, %s, %s, %s, %s, %s)",
-                       (fname, lname, data['email'], '0000000000', data['password'], ''))
+                       (fname, lname, coord_email, '0000000000', password, ''))
             db.commit()
-            return jsonify({"success": True})
+
+            # Dynamic welcome credentials email to coordinator
+            login_url = request.host_url.rstrip('/') + url_for('coordinator_page')
+            mail_ok, mail_err = send_coordinator_credentials_email(
+                coord_email=coord_email,
+                username=username,
+                password=password,
+                login_url=login_url
+            )
+
+            if mail_ok:
+                return jsonify({
+                    "success": True,
+                    "email_sent": True,
+                    "message": f"Coordinator '{username}' created successfully! Credentials emailed to {coord_email}."
+                })
+            else:
+                return jsonify({
+                    "success": True,
+                    "email_sent": False,
+                    "warning": f"Coordinator created successfully, but credentials email could not be delivered: {mail_err}"
+                })
         except Exception as e:
-            return jsonify({"error": str(e)}), 400
+            try:
+                db.rollback()
+            except Exception:
+                pass
+            err_msg = str(e)
+            if 'Duplicate entry' in err_msg or 'UNIQUE' in err_msg.upper():
+                return jsonify({
+                    "error": f"A coordinator with email '{coord_email}' already exists. Please use a different email."
+                }), 400
+            return jsonify({"error": err_msg}), 400
 
     if request.method == 'DELETE':
         cid = request.args.get('id')
@@ -1610,21 +2362,35 @@ def admin_work_log():
 def check_data():
     start = request.args.get("start_date")
     end = request.args.get("end_date")
+    search = request.args.get("search") or request.args.get("term")
     
-    if not start or not end:
+    if not start and not end:
         return jsonify({"error": "Start and end dates required"}), 400
 
     try:
         db = get_db()
         cur = db.cursor(dictionary=True)
-        # count applications submitted in range
-        cur.execute("""
-            SELECT COUNT(*) as count FROM applications
-            WHERE date_submitted BETWEEN %s AND %s
-        """, (start + " 00:00:00", end + " 23:59:59"))
-        row = cur.fetchone()
-        count = row['count'] if row else 0
-        return jsonify({"count": count})
+        # If coordinator is logged in, count matching applications for coordinator
+        if 'coordinator_id' in session:
+            coord_name = session.get('coordinator_name', '').strip()
+            apps = fetch_coordinator_applications_records(cur, coord_name)
+            status_filter = request.args.get('status') or request.args.get('status_filter') or 'all'
+            filtered = filter_coordinator_applications(apps, start_date=start, end_date=end, search=search, status_filter=status_filter)
+            return jsonify({"count": len(filtered)})
+        else:
+            # Fallback to existing admin count logic
+            query = "SELECT COUNT(*) as count FROM applications WHERE 1=1"
+            params = []
+            if start:
+                query += " AND date_submitted >= %s"
+                params.append(start + " 00:00:00")
+            if end:
+                query += " AND date_submitted <= %s"
+                params.append(end + " 23:59:59")
+            cur.execute(query, tuple(params))
+            row = cur.fetchone()
+            count = row['count'] if row else 0
+            return jsonify({"count": count})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1636,12 +2402,79 @@ def download_excel():
     chart = request.args.get('chart', '0')
     branch = request.args.get('branch', '')
     status = request.args.get('status', '')
+    search = request.args.get('search') or request.args.get('term')
 
     db = get_db()
     cur = db.cursor(dictionary=True)
 
-    query = "SELECT * FROM applications WHERE date_submitted BETWEEN %s AND %s"
-    params = [start + " 00:00:00", end + " 23:59:59"]
+    # Coordinator applications export
+    if 'coordinator_id' in session:
+        coord_name = session.get('coordinator_name', '').strip()
+        apps = fetch_coordinator_applications_records(cur, coord_name)
+        status_filter = request.args.get('status') or request.args.get('status_filter') or 'all'
+        filtered = filter_coordinator_applications(apps, start_date=start, end_date=end, search=search, status_filter=status_filter)
+
+        if not filtered:
+            return "No applications found for the selected dates.", 404
+
+        import openpyxl
+        from io import BytesIO
+        from openpyxl.chart import PieChart, Reference
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Applications Details"
+
+        headers = ["Application No", "Student Name", "Father Name", "Department", "Mobile", "Address", "Date Submitted", "Next College Visit", "Status"]
+        ws.append(headers)
+
+        dept_count = {}
+        for rdict in filtered:
+            ws.append([
+                rdict.get('application_number') or '',
+                rdict.get('student_name') or '',
+                rdict.get('father_name') or '',
+                rdict.get('preferred_branch') or '',
+                rdict.get('mobile') or '',
+                rdict.get('address') or '',
+                rdict.get('date_submitted') or '',
+                rdict.get('next_visit') or '-',
+                rdict.get('status') or 'visited'
+            ])
+            dept = rdict.get('preferred_branch')
+            if dept:
+                dept_count[dept] = dept_count.get(dept, 0) + 1
+
+        if chart in ['1', 'true', True] and dept_count:
+            ws_chart = wb.create_sheet(title="Department Pie Chart")
+            ws_chart.append(["Department", "Count"])
+            for dept, count in dept_count.items():
+                ws_chart.append([dept, count])
+            pie = PieChart()
+            data = Reference(ws_chart, min_col=2, min_row=1, max_row=len(dept_count)+1)
+            labels = Reference(ws_chart, min_col=1, min_row=2, max_row=len(dept_count)+1)
+            pie.add_data(data, titles_from_data=True)
+            pie.set_categories(labels)
+            pie.title = "Applications by Department"
+            ws_chart.add_chart(pie, "E5")
+
+        buf = BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        from flask import send_file
+        filename = f"applications_report_{start or 'all'}_{end or 'all'}.xlsx"
+        return send_file(buf, as_attachment=True, download_name=filename,
+                         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+    # Admin export (existing behavior)
+    query = "SELECT * FROM applications WHERE 1=1"
+    params = []
+    if start:
+        query += " AND date_submitted >= %s"
+        params.append(start + " 00:00:00")
+    if end:
+        query += " AND date_submitted <= %s"
+        params.append(end + " 23:59:59")
     if branch:
         query += " AND preferred_branch = %s"
         params.append(branch)
@@ -1683,7 +2516,7 @@ def download_excel():
         if dept:
             dept_count[dept] = dept_count.get(dept, 0) + 1
 
-    if chart == '1' and dept_count:
+    if chart in ['1', 'true', True] and dept_count:
         ws_chart = wb.create_sheet(title="Department Pie Chart")
         ws_chart.append(["Department", "Count"])
         for dept, count in dept_count.items():
@@ -1811,9 +2644,14 @@ def generate_application_form_pdf(app_no):
     # Page 1 Header
     logo_img = get_rl_image(['logo', 'college_logo'], width=50, height=50)
     if not logo_img:
-        logo_path = os.path.join(app.root_path, 'static', 'logo.jpg')
-        if os.path.isfile(logo_path):
-            logo_img = RLImage(logo_path, width=50, height=50)
+        for cand in ['PEC Logo.png', 'pec_logo.png', 'logo.png', 'logo.jpg']:
+            logo_path = os.path.join(app.root_path, 'static', cand)
+            if os.path.isfile(logo_path):
+                try:
+                    logo_img = RLImage(logo_path, width=50, height=50)
+                    break
+                except Exception:
+                    pass
 
     header_text = [
         Paragraph("<b>PRATHYUSHA ENGINEERING COLLEGE</b>", title_style),
@@ -2153,12 +2991,94 @@ def download_pdf():
     end = request.args.get('end_date')
     branch = request.args.get('branch', '')
     status = request.args.get('status', '')
+    search = request.args.get('search') or request.args.get('term')
 
     db = get_db()
     cur = db.cursor(dictionary=True)
 
-    query = "SELECT * FROM applications WHERE date_submitted BETWEEN %s AND %s"
-    params = [start + " 00:00:00", end + " 23:59:59"]
+    # Coordinator applications PDF export
+    if 'coordinator_id' in session:
+        coord_name = session.get('coordinator_name', '').strip()
+        apps = fetch_coordinator_applications_records(cur, coord_name)
+        status_filter = request.args.get('status') or request.args.get('status_filter') or 'all'
+        rows = filter_coordinator_applications(apps, start_date=start, end_date=end, search=search, status_filter=status_filter)
+
+        if not rows:
+            return "No applications found for the selected dates.", 404
+
+        from io import BytesIO
+        from reportlab.lib.pagesizes import A4
+        from reportlab.pdfgen import canvas
+
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+        x_margin = 30
+        y = height - 50
+        line_height = 14
+
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(x_margin, y, "Prathyusha Engineering College")
+        y -= 16
+        p.setFont("Helvetica", 10)
+        p.drawString(x_margin, y, f"Applications Details Report ({start or 'All'} to {end or 'All'})")
+        y -= 22
+
+        headers = ["App No", "Student Name", "Father Name", "Dept", "Mobile", "Date Submitted", "Next Visit", "Status"]
+        p.setFont("Helvetica-Bold", 8.5)
+        col_widths = [65, 80, 80, 50, 65, 75, 65, 55]
+        x_positions = []
+        cur_x = x_margin
+        for w in col_widths:
+            x_positions.append(cur_x)
+            cur_x += w
+
+        for i, h in enumerate(headers):
+            p.drawString(x_positions[i], y, h)
+        y -= line_height
+        p.setLineWidth(0.5)
+        p.line(x_margin, y + 10, cur_x - 5, y + 10)
+        p.setFont("Helvetica", 8)
+
+        for r in rows:
+            rdict = dict(r)
+            rowvals = [
+                str(rdict.get('application_number') or '')[:12],
+                str(rdict.get('student_name') or '')[:15],
+                str(rdict.get('father_name') or '')[:15],
+                str(rdict.get('preferred_branch') or '')[:10],
+                str(rdict.get('mobile') or '-')[:11],
+                str(rdict.get('date_submitted') or '')[:11],
+                str(rdict.get('next_visit') or '-')[:12],
+                str(rdict.get('status') or 'visited')[:10]
+            ]
+            for i, val in enumerate(rowvals):
+                p.drawString(x_positions[i], y, val)
+            y -= line_height
+            if y < 50:
+                p.showPage()
+                y = height - 50
+                p.setFont("Helvetica-Bold", 8.5)
+                for i, h in enumerate(headers):
+                    p.drawString(x_positions[i], y, h)
+                y -= line_height
+                p.setFont("Helvetica", 8)
+
+        p.save()
+        buffer.seek(0)
+        from flask import send_file
+        filename = f"applications_report_{start or 'all'}_{end or 'all'}.pdf"
+        return send_file(buffer, as_attachment=True, download_name=filename, mimetype="application/pdf")
+
+    # Admin PDF export (existing behavior)
+    query = "SELECT * FROM applications WHERE 1=1"
+    params = []
+    if start:
+        query += " AND date_submitted >= %s"
+        params.append(start + " 00:00:00")
+    if end:
+        query += " AND date_submitted <= %s"
+        params.append(end + " 23:59:59")
     if branch:
         query += " AND preferred_branch = %s"
         params.append(branch)
@@ -2220,40 +3140,11 @@ def download_pdf():
 
 @app.route('/search_students')
 def search_students():
-    if 'coordinator_id' not in session:
-        return jsonify({"error": "Not authorized"}), 401
-        
-    search_term = request.args.get('term', '').lower()
-    
-    try:
-        db = get_db()
-        cursor = db.cursor(dictionary=True)
-        
-        cursor.execute("""
-            SELECT * FROM applications 
-            WHERE (LOWER(student_name) LIKE %s OR 
-                  LOWER(application_number) LIKE %s) AND
-                  coordinator = %s
-        """, (f'%{search_term}%', f'%{search_term}%', session.get('coordinator_name', '')))
-        
-        students = []
-        for row in cursor.fetchall():
-            students.append({
-                'application_number': row['application_number'],
-                'student_name': row['student_name'],
-                'father_name': row['father_name'],
-                'preferred_branch': row['preferred_branch'],
-                'mobile': row['mobile'],
-                'address': row['address'],
-                'status': row.get('status', ''),
-                'next_visit': row.get('next_visit', ''),
-                'feedback': row.get('feedback', '')
-            })
-            
-        return jsonify({"students": students}), 200
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    """
+    Search route alias for coordinator applications to ensure compatibility with both
+    term query and date range filtering.
+    """
+    return get_coordinator_applications()
 
 
 # ---------------- Logout ----------------
@@ -2264,16 +3155,24 @@ def logout():
 
 
 
-# ---------------- Database Setup ----------------
+# ---------------- Database Setup & Services ----------------
 def init_db():
     """
-    Initialize or upgrade the database schema safely using external script.
+    Initialize or upgrade the database schema safely.
     """
     try:
-        import create_mysql_schema
-        create_mysql_schema.create_schema()
+        conn = create_db_connection()
+        ensure_db_schema(conn)
+        is_mysql = not (isinstance(conn, SQLiteConnWrapper) or hasattr(conn, 'conn'))
+        conn.close()
+        if is_mysql:
+            try:
+                import create_mysql_schema
+                create_mysql_schema.create_schema()
+            except Exception:
+                pass
     except Exception as e:
-        print(f"Database initialization failed: {e}")
+        print(f"Database schema check failed: {e}")
 
 @app.errorhandler(Exception)
 def handle_500(e):
@@ -2282,4 +3181,8 @@ def handle_500(e):
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    # Avoid duplicate scheduler instances with Werkzeug reloader
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or os.environ.get('FLASK_DEBUG') != '1':
+        start_scheduler(create_db_connection)
+    app.run(debug=True, port=5000)
+

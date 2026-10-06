@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coordinator Login - Prathyusha Engineering College</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='PEC Logo.png') }}">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -317,7 +318,7 @@
 
 <body>
   <header class="header">
-    <img src="/static/hlogo.jpg" alt="Logo" />
+    <img src="{{ url_for('static', filename='PEC Logo.png') }}" alt="Logo" />
     <div class="title">
       <h1>PRATHYUSHA ENGINEERING COLLEGE</h1>
       <p>An Autonomous Institution</p>

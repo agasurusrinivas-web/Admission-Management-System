@@ -5,6 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Dashboard - PEC</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='PEC Logo.png') }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -33,14 +34,31 @@
       box-sizing: border-box;
     }
 
+    .navbar .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: 230px;
+      flex: 1 1 auto;
+    }
+
+    .navbar .brand-wrap img {
+      height: 48px;
+      width: 48px;
+      object-fit: contain;
+      border-radius: 50%;
+      background: #fff;
+      padding: 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
     .navbar h1 {
-      margin: 220px;
+      margin: 0;
       font-size: 20px;
       font-weight: bold;
       white-space: normal;
       overflow-wrap: break-word;
       line-height: 1.2;
-      flex: 1 1 auto;
     }
 
     .navbar .right {
@@ -456,6 +474,7 @@
       <button id="dashboardBtn" class="active" onclick="showSection('dashboard')">📊 Dashboard</button>
       <button id="coordinatorBtn" onclick="showSection('coordinator')">👨‍🏫 Coordinators</button>
       <button id="feedbackBtn" onclick="showSection('feedback')">💬 Feedback Info</button>
+      <button id="followupBtn" onclick="showSection('followup')">📅 Follow-up Monitoring</button>
       <button id="viewBtn" onclick="showSection('view')">📑 View</button>
     </div>
     <div class="sidebar-bottom">
@@ -465,11 +484,13 @@
 
   <!-- Top Navbar -->
   <div class="navbar">
-    <h1>Admin Dashboard - Prathyusha Engineering College</h1>
+    <div class="brand-wrap">
+      <img src="{{ url_for('static', filename='PEC Logo.png') }}" alt="College Logo">
+      <h1>Admin Dashboard - Prathyusha Engineering College</h1>
+    </div>
     <div class="right">
       <span class="notification" onclick="toggleNotifications()">🔔</span>
       <button class="action-btn" onclick="window.location.href='{{ url_for('home') }}'">Logout</button>
-
     </div>
   </div>
 
@@ -896,7 +917,8 @@
         <div style="display:flex; flex-direction:column; gap:12px; font-size:14px; color:#333;">
           <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding-bottom:6px;">
             <span><strong>Application No:</strong> <span id="viewAppNo"></span></span>
-            <span><strong>Status:</strong> <span id="viewStatus" style="font-weight:bold; color:var(--accent);"></span></span>
+            <span><strong>Status:</strong> <span id="viewStatus"
+                style="font-weight:bold; color:var(--accent);"></span></span>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <p style="margin:0;"><strong>Student Name:</strong> <span id="viewStudentName"></span></p>
@@ -905,16 +927,22 @@
             <p style="margin:0;"><strong>Preferred Branch:</strong> <span id="viewBranch"></span></p>
             <p style="margin:0;"><strong>Coordinator:</strong> <span id="viewCoordinator"></span></p>
             <p style="margin:0;"><strong>Submission Date:</strong> <span id="viewDate"></span></p>
-            <p style="margin:0; grid-column:span 2;"><strong>Next College Visit:</strong> <span id="viewNextVisit"></span></p>
+            <p style="margin:0; grid-column:span 2;"><strong>Next College Visit:</strong> <span
+                id="viewNextVisit"></span></p>
             <p style="margin:0; grid-column:span 2;"><strong>Address:</strong> <span id="viewAddress"></span></p>
           </div>
-          <div style="margin-top:6px; background:#f9f9f9; padding:14px; border-radius:8px; border:1px solid #ddd; max-height:300px; overflow-y:auto; word-break:break-word;">
-            <strong style="color:var(--accent); display:block; margin-bottom:6px; font-size:14px;">Feedback Content:</strong>
-            <p id="viewFeedbackText" style="margin:0; white-space:pre-wrap; word-wrap:break-word; word-break:break-word; font-style:normal; font-size:14px; line-height:1.6; color:#222;"></p>
+          <div
+            style="margin-top:6px; background:#f9f9f9; padding:14px; border-radius:8px; border:1px solid #ddd; max-height:300px; overflow-y:auto; word-break:break-word;">
+            <strong style="color:var(--accent); display:block; margin-bottom:6px; font-size:14px;">Feedback
+              Content:</strong>
+            <p id="viewFeedbackText"
+              style="margin:0; white-space:pre-wrap; word-wrap:break-word; word-break:break-word; font-style:normal; font-size:14px; line-height:1.6; color:#222;">
+            </p>
           </div>
         </div>
         <div style="margin-top:16px; text-align:right;">
-          <button type="button" class="action-btn" onclick="closeViewFeedbackModal()" style="background:#444;">Close</button>
+          <button type="button" class="action-btn" onclick="closeViewFeedbackModal()"
+            style="background:#444;">Close</button>
         </div>
       </div>
     </div>
@@ -926,416 +954,528 @@
         <p>Do you really want to delete the feedback for this application?</p>
         <div style="margin-top:14px;">
           <button class="action-btn" onclick="confirmDeleteFeedback()">Yes</button>
-          <button class="action-btn" onclick="closeDeleteConfirmModal()"
-            style="background:#888;margin-left:8px;">No</button>
-        </div>
-      </div>
-    </div>
+          <button class="action-btn" onclick="closeDeleteConfirmModal()" </div>
 
-    <script>
-      // Show Section Function
-      function showSection(section) {
-        document.getElementById("dashboardSection").style.display = section === "dashboard" ? "block" : "none";
-        document.getElementById("coordinatorSection").style.display = section === "coordinator" ? "block" : "none";
-        document.getElementById("feedbackSection").style.display = section === "feedback" ? "block" : "none";
-        document.getElementById("viewSection").style.display = section === "view" ? "block" : "none";
-        document.getElementById("profileSection").style.display = section === "profile" ? "block" : "none";
+            <!-- Follow-up Email Monitoring Section -->
+            <div id="followupSection" style="display:none;">
+              <div
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                <h2 style="margin:0; font-size:22px; color:#333;">Follow-up Email Monitoring</h2>
+                <div style="display:flex; gap:10px;">
+                  <button class="action-btn" onclick="triggerAdminSchedulerCheck()"
+                    style="background:#2563eb; display:flex; align-items:center; gap:6px;">
+                    ⚡ Run Scheduler Now
+                  </button>
+                </div>
+              </div>
 
-        document.getElementById("dashboardBtn").classList.toggle("active", section === "dashboard");
-        document.getElementById("coordinatorBtn").classList.toggle("active", section === "coordinator");
-        document.getElementById("feedbackBtn").classList.toggle("active", section === "feedback");
-        document.getElementById("viewBtn").classList.toggle("active", section === "view");
-        document.getElementById("profileBtn").classList.toggle("active", section === "profile");
+              <!-- Top Row: Metrics & SMTP Test Tool -->
+              <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:18px;">
+                <!-- Counters -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px;">
+                  <div class="card" style="text-align:center; padding:12px; border-left:4px solid #4f46e5;">
+                    <p style="margin:0; font-size:12px; color:#666;">Total Follow-ups</p>
+                    <h3 id="adminTotalFollowups" style="margin:4px 0 0; font-size:22px; color:#111;">0</h3>
+                  </div>
+                  <div class="card" style="text-align:center; padding:12px; border-left:4px solid #3b82f6;">
+                    <p style="margin:0; font-size:12px; color:#666;">Scheduled</p>
+                    <h3 id="adminScheduledFollowups" style="margin:4px 0 0; font-size:22px; color:#2563eb;">0</h3>
+                  </div>
+                  <div class="card" style="text-align:center; padding:12px; border-left:4px solid #16a34a;">
+                    <p style="margin:0; font-size:12px; color:#666;">Emails Sent</p>
+                    <h3 id="adminSentFollowups" style="margin:4px 0 0; font-size:22px; color:#16a34a;">0</h3>
+                  </div>
+                  <div class="card" style="text-align:center; padding:12px; border-left:4px solid #059669;">
+                    <p style="margin:0; font-size:12px; color:#666;">Completed</p>
+                    <h3 id="adminCompletedFollowups" style="margin:4px 0 0; font-size:22px; color:#059669;">0</h3>
+                  </div>
+                  <div class="card" style="text-align:center; padding:12px; border-left:4px solid #d97706;">
+                    <p style="margin:0; font-size:12px; color:#666;">Missed</p>
+                    <h3 id="adminMissedFollowups" style="margin:4px 0 0; font-size:22px; color:#d97706;">0</h3>
+                  </div>
+                  <div class="card" style="text-align:center; padding:12px; border-left:4px solid #dc2626;">
+                    <p style="margin:0; font-size:12px; color:#666;">Email Failed</p>
+                    <h3 id="adminFailedFollowups" style="margin:4px 0 0; font-size:22px; color:#dc2626;">0</h3>
+                  </div>
+                </div>
 
-        if (section === 'dashboard') fetchStats();
-        if (section === 'coordinator') fetchCoordinators();
-        if (section === 'feedback') fetchFeedback();
-        if (section === 'view') fetchWorkLog();
-        if (section === 'profile') fetchProfile();
-      }
+                <!-- SMTP Test Tool Card (Section 24) -->
+                <div class="card"
+                  style="padding:14px; background:#fff; border-radius:10px; border-top:3px solid #16a34a;">
+                  <h4 style="margin:0 0 8px 0; font-size:14px; color:#333;">📧 SMTP Email Diagnostics</h4>
+                  <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Test server SMTP credentials safely without
+                    creating a real student record.</p>
+                  <div style="display:flex; gap:8px;">
+                    <input type="email" id="adminTestEmailInput" placeholder="test-recipient@example.com"
+                      value="{{ admin.email }}"
+                      style="flex:1; padding:6px 10px; font-size:13px; border:1px solid #ccc; border-radius:6px;">
+                    <button class="action-btn" id="sendTestEmailBtn" onclick="sendAdminTestEmail()"
+                      style="font-size:12px; padding:6px 12px; background:#16a34a; white-space:nowrap;">Send
+                      Test</button>
+                  </div>
+                  <div id="adminTestEmailStatus" style="margin-top:8px; font-size:12px; display:none;"></div>
+                </div>
+              </div>
 
-      // Global Data Containers
-      let coordinators = [];
-      let feedbackData = [];
-      let admissionsChart = null;
-      let studentsPieChart = null;
-      let currentStatsData = null;  // cached full API response
-      let currentChartMode = 'admissions'; // 'admissions' or 'visited'
+              <!-- Filters & Search -->
+              <div class="card" style="padding:14px; margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button class="action-btn admin-f-filter active" onclick="filterAdminFollowups('all', this)"
+                      style="padding:5px 12px; font-size:12px;">All</button>
+                    <button class="action-btn admin-f-filter" onclick="filterAdminFollowups('scheduled', this)"
+                      style="padding:5px 12px; font-size:12px; background:#e5e7eb; color:#374151;">Scheduled</button>
+                    <button class="action-btn admin-f-filter" onclick="filterAdminFollowups('sent', this)"
+                      style="padding:5px 12px; font-size:12px; background:#e5e7eb; color:#374151;">Sent</button>
+                    <button class="action-btn admin-f-filter" onclick="filterAdminFollowups('completed', this)"
+                      style="padding:5px 12px; font-size:12px; background:#e5e7eb; color:#374151;">Completed</button>
+                    <button class="action-btn admin-f-filter" onclick="filterAdminFollowups('missed', this)"
+                      style="padding:5px 12px; font-size:12px; background:#e5e7eb; color:#374151;">Missed</button>
+                    <button class="action-btn admin-f-filter" onclick="filterAdminFollowups('failed', this)"
+                      style="padding:5px 12px; font-size:12px; background:#e5e7eb; color:#374151;">Failed</button>
+                  </div>
+                  <input type="text" id="adminFollowupSearch"
+                    placeholder="Search application, student or coordinator..." onkeyup="filterAdminFollowupsTable()"
+                    style="padding:6px 12px; font-size:13px; border:1px solid #ccc; border-radius:6px; min-width:250px;">
+                </div>
+              </div>
 
-      // --- API Fetch Functions ---
+              <!-- Follow-up Table -->
+              <div class="card" style="padding:0; overflow:hidden;">
+                <div style="overflow-x:auto;">
+                  <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+                    <thead>
+                      <tr
+                        style="background:#f9fafb; border-bottom:1px solid #e5e7eb; color:#4b5563; font-size:12px; text-transform:uppercase;">
+                        <th style="padding:12px 14px;">Application</th>
+                        <th style="padding:12px 14px;">Student</th>
+                        <th style="padding:12px 14px;">Coordinator</th>
+                        <th style="padding:12px 14px;">Scheduled Visit</th>
+                        <th style="padding:12px 14px;">Purpose</th>
+                        <th style="padding:12px 14px;">Student Email</th>
+                        <th style="padding:12px 14px;">Coordinator Email</th>
+                        <th style="padding:12px 14px;">Overall Status</th>
+                        <th style="padding:12px 14px; text-align:center;">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="adminFollowupTableBody">
+                      <tr>
+                        <td colspan="9" style="text-align:center; padding:24px; color:#6b7280;">Loading follow-up
+                          records...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
 
-      // Track whether year dropdown has been populated from the API
-      let yearDropdownPopulated = false;
+            <script>
+              // Show Section Function
+              function showSection(section) {
+                document.getElementById("dashboardSection").style.display = section === "dashboard" ? "block" : "none";
+                document.getElementById("coordinatorSection").style.display = section === "coordinator" ? "block" : "none";
+                document.getElementById("feedbackSection").style.display = section === "feedback" ? "block" : "none";
+                document.getElementById("followupSection").style.display = section === "followup" ? "block" : "none";
+                document.getElementById("viewSection").style.display = section === "view" ? "block" : "none";
+                document.getElementById("profileSection").style.display = section === "profile" ? "block" : "none";
 
-      async function fetchStats(yearOverride) {
-        try {
-          const yearSel = document.getElementById('chartYearSelect');
-          // Determine which year to fetch
-          let year;
-          if (yearOverride !== undefined) {
-            year = yearOverride;
-            // Sync dropdown to the requested year
-            if (yearSel) yearSel.value = year;
-          } else {
-            year = (yearSel && yearSel.value) ? yearSel.value : 'all';
-          }
+                document.getElementById("dashboardBtn").classList.toggle("active", section === "dashboard");
+                document.getElementById("coordinatorBtn").classList.toggle("active", section === "coordinator");
+                document.getElementById("feedbackBtn").classList.toggle("active", section === "feedback");
+                document.getElementById("followupBtn").classList.toggle("active", section === "followup");
+                document.getElementById("viewBtn").classList.toggle("active", section === "view");
+                document.getElementById("profileBtn").classList.toggle("active", section === "profile");
 
-          const url = (year && year !== 'all') ? `/api/admin/stats?year=${year}` : '/api/admin/stats?year=all';
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data.error) return;
-
-          currentStatsData = data;
-
-          // Populate academic year dropdown from all_years — ONLY ONCE
-          if (!yearDropdownPopulated && data.meta && data.meta.all_years) {
-            const sel = document.getElementById('chartYearSelect');
-            if (sel) {
-              // Keep existing selected value
-              const currentSel = year;
-              // Remove any placeholder children (keep the static "All Years" option)
-              // Clear and rebuild from scratch to be safe
-              sel.innerHTML = '';
-              // All Years option
-              const allOpt = document.createElement('option');
-              allOpt.value = 'all';
-              allOpt.textContent = 'All Years';
-              if (currentSel === 'all' || !currentSel) allOpt.selected = true;
-              sel.appendChild(allOpt);
-              // Individual year options
-              data.meta.all_years.forEach(yr => {
-                const opt = document.createElement('option');
-                opt.value = String(yr);               // e.g. "2025"
-                opt.textContent = `${yr}-${yr + 1}`; // e.g. "2025-2026"
-                if (String(yr) === String(currentSel)) opt.selected = true;
-                sel.appendChild(opt);
-              });
-              yearDropdownPopulated = true;
-            }
-          }
-
-          // Determine the final selected value (after dropdown is updated)
-          const finalYear = yearSel ? yearSel.value : (year || 'all');
-          const yearLabel = (finalYear === 'all' || !finalYear)
-            ? 'All Years'
-            : `${finalYear}-${parseInt(finalYear) + 1}`;
-
-          // Update counter label
-          const ctxLabel = document.getElementById('counterYearLabel');
-          if (ctxLabel) ctxLabel.textContent = `Showing: ${yearLabel}`;
-
-          // Update counters
-          document.getElementById('admissionsCount').innerText = data.counters.admissions;
-          document.getElementById('enrollmentsCount').innerText = data.counters.enrollments;
-
-          // Render charts for current mode
-          const chartKey = currentChartMode === 'visited' ? 'visited_charts' : 'admissions_charts';
-          updateCharts(data[chartKey]);
-        } catch (e) { console.error(e); }
-      }
-
-      function switchChartMode(mode) {
-        if (!currentStatsData) return;
-        currentChartMode = mode;
-
-        // Highlight active counter card
-        document.getElementById('cardAdmissions').classList.toggle('active', mode === 'admissions');
-        document.getElementById('cardVisited').classList.toggle('active', mode === 'visited');
-
-        // Update titles
-        const barTitle = document.getElementById('barChartTitle');
-        const pieTitle = document.getElementById('pieChartTitle');
-        const summaryTitle = document.querySelector('#admissionsDataTable').previousElementSibling;
-        if (barTitle) barTitle.textContent = mode === 'admissions' ? 'Admissions Overview (Confirmed)' : 'Visited Overview (All Students)';
-        if (pieTitle) pieTitle.textContent = mode === 'admissions' ? 'Department-wise Admissions' : 'Department-wise All Students';
-        if (summaryTitle) summaryTitle.textContent = mode === 'admissions' ? 'Admissions Data (current view)' : 'All Students Data (current view)';
-
-        const chartKey = mode === 'visited' ? 'visited_charts' : 'admissions_charts';
-        updateCharts(currentStatsData[chartKey]);
-      }
-
-      // Track whether coord year dropdown has been populated
-      let coordYearDropdownPopulated = false;
-
-      async function fetchCoordinators(yearOverride) {
-        try {
-          const coordSel = document.getElementById('coordYearSelect');
-          let year;
-          if (yearOverride !== undefined) {
-            year = yearOverride;
-            if (coordSel) coordSel.value = year;
-          } else {
-            year = coordSel ? coordSel.value : 'all';
-          }
-
-          const url = (year && year !== 'all')
-            ? `/api/admin/coordinators?year=${year}`
-            : '/api/admin/coordinators?year=all';
-
-          const res = await fetch(url);
-          coordinators = await res.json();
-
-          // Populate year dropdown from current dashboard years (shared meta) — ONCE
-          if (!coordYearDropdownPopulated && currentStatsData && currentStatsData.meta && currentStatsData.meta.all_years) {
-            const sel = document.getElementById('coordYearSelect');
-            if (sel) {
-              const currentSel = year;
-              sel.innerHTML = '';
-              const allOpt = document.createElement('option');
-              allOpt.value = 'all';
-              allOpt.textContent = 'All Years';
-              if (currentSel === 'all' || !currentSel) allOpt.selected = true;
-              sel.appendChild(allOpt);
-              currentStatsData.meta.all_years.forEach(yr => {
-                const opt = document.createElement('option');
-                opt.value = String(yr);
-                opt.textContent = `${yr}-${yr + 1}`;
-                if (String(yr) === String(currentSel)) opt.selected = true;
-                sel.appendChild(opt);
-              });
-              coordYearDropdownPopulated = true;
-            }
-          }
-
-          // Update label
-          const finalYear = coordSel ? coordSel.value : (year || 'all');
-          const coordLabel = (finalYear === 'all' || !finalYear)
-            ? 'All Years'
-            : `${finalYear}-${parseInt(finalYear) + 1}`;
-          const lbl = document.getElementById('coordYearLabel');
-          if (lbl) lbl.textContent = `Showing: ${coordLabel}`;
-
-          renderCoordinatorGrid();
-        } catch (e) { console.error(e); }
-      }
-
-      async function fetchFeedback() {
-        try {
-          const res = await fetch('/api/admin/feedback');
-          feedbackData = await res.json();
-          renderFeedbackTable();
-        } catch (e) { console.error(e); }
-      }
-
-      let filteredToday = null;
-      let filteredYesterday = null;
-
-      async function fetchWorkLog() {
-        try {
-          const res = await fetch('/api/admin/work-log');
-          const data = await res.json();
-          if (data.error) return;
-
-          // Apply filters (date, branch, status)
-          const startDateVal = document.getElementById('startDate').value;
-          const endDateVal = document.getElementById('endDate').value;
-          const branchVal = document.getElementById('prefBranch').value;
-          const statusVal = document.getElementById('filterStatus').value;
-
-          let listToday = data.today || [];
-          let listYesterday = data.yesterday || [];
-
-          const applyFilters = (list) => list.filter(item => {
-            // Branch filter
-            if (branchVal && item.branch !== branchVal) return false;
-            // Status filter
-            if (statusVal && (item.status || '').toLowerCase() !== statusVal.toLowerCase()) return false;
-            return true;
-          });
-
-          listToday = applyFilters(listToday);
-          listYesterday = applyFilters(listYesterday);
-
-          filteredToday = listToday;
-          filteredYesterday = listYesterday;
-
-          const renderRows = (list, tableId) => {
-            const tbody = document.querySelector(`#${tableId} tbody`);
-            tbody.innerHTML = "";
-            if (!list || list.length === 0) {
-              tbody.innerHTML = "<tr><td colspan='3'>No activity recorded</td></tr>";
-              return;
-            }
-            list.forEach(item => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `<td>${item.coordinator || '-'}</td><td>${item.appId}</td><td>${item.student}</td>`;
-              tbody.appendChild(tr);
-            });
-          };
-
-          renderRows(listToday, 'todayWorkTable');
-          renderRows(listYesterday, 'yesterdayWorkTable');
-
-          // Dates
-          document.getElementById('todayDate').innerText = new Date().toLocaleDateString();
-          const y = new Date(); y.setDate(y.getDate() - 1);
-          document.getElementById('yesterdayDate').innerText = y.toLocaleDateString();
-
-        } catch (e) { console.error(e); }
-      }
-
-      // --- Rendering & Logic ---
-
-      // 1. Charts
-      function updateCharts(chartsData) {
-        if (!chartsData) return;
-        const type = document.getElementById('graphType').value;
-        const barLabel = currentChartMode === 'visited' ? 'All Students (Visited)' : 'Admissions (Confirmed)';
-        const barColor = currentChartMode === 'visited' ? '#17a2b8' : '#a60000';
-
-        // Determine selected academic year — handle 'all' safely
-        const yearSel = document.getElementById('chartYearSelect');
-        const yearVal = yearSel ? yearSel.value : 'all';
-        const isAllYears = (yearVal === 'all' || yearVal === '');
-        // For 'all', fall back to current year for monthly labels (matches backend behaviour)
-        const selYear = isAllYears
-          ? (currentStatsData && currentStatsData.meta ? currentStatsData.meta.cur_year : new Date().getFullYear())
-          : parseInt(yearVal);
-        const acLabel = isAllYears ? 'All Years' : `${selYear}-${selYear + 1}`;
-
-        let labelSet, dataSet;
-        if (type === 'monthly') {
-          // Always 12 months (Jan-Dec) of the selected year
-          const mnths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          labelSet = mnths.map(m => `${m} ${selYear}`);
-          dataSet = chartsData.monthly.data;
-          // Update subtitle
-          const sub = document.getElementById('chartSubtitle');
-          if (sub) sub.textContent = isAllYears ? `Showing all 12 months for current year` : `Showing all 12 months for ${acLabel}`;
-        } else if (type === 'yearly') {
-          // One bar per year (all years in DB)
-          labelSet = chartsData.yearly ? chartsData.yearly.labels : [];
-          dataSet = chartsData.yearly ? chartsData.yearly.data : [];
-          const sub = document.getElementById('chartSubtitle');
-          if (sub) sub.textContent = `Showing all available years`;
-        } else {
-          // Weekly — last 7 days, year filter doesn't apply
-          labelSet = chartsData.weekly.labels;
-          dataSet = chartsData.weekly.data;
-          const sub = document.getElementById('chartSubtitle');
-          if (sub) sub.textContent = `Showing last 7 days`;
-        }
-
-        // Update pie year label
-        const pieYearLbl = document.getElementById('pieYearLabel');
-        if (pieYearLbl) pieYearLbl.textContent = `Data filtered for: ${acLabel}`;
-
-        // Bar chart
-        if (admissionsChart) admissionsChart.destroy();
-        admissionsChart = new Chart(
-          document.getElementById('admissionsChart').getContext('2d'),
-          {
-            type: 'bar',
-            data: {
-              labels: labelSet,
-              datasets: [{
-                label: barLabel,
-                data: dataSet,
-                backgroundColor: barColor,
-                borderRadius: 4
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: true, position: 'top' } },
-              scales: {
-                x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0 } },
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                if (section === 'dashboard') fetchStats();
+                if (section === 'coordinator') fetchCoordinators();
+                if (section === 'feedback') fetchFeedback();
+                if (section === 'followup') fetchAdminFollowUps();
+                if (section === 'view') fetchWorkLog();
+                if (section === 'profile') fetchProfile();
               }
-            }
-          }
-        );
 
-        // Data Summary Table
-        const tbody = document.querySelector('#admissionsDataTable tbody');
-        tbody.innerHTML = '';
-        for (let i = 0; i < labelSet.length; i++) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${labelSet[i]}</td><td>${dataSet[i]}</td>`;
-          tbody.appendChild(tr);
-        }
+              // Global Data Containers
+              let coordinators = [];
+              let feedbackData = [];
+              let admissionsChart = null;
+              let studentsPieChart = null;
+              let currentStatsData = null;  // cached full API response
+              let currentChartMode = 'admissions'; // 'admissions' or 'visited'
 
-        // Pie chart — dept breakdown (already filtered by year in backend)
-        const pieLabels = chartsData.dept.labels;
-        const pieValues = chartsData.dept.data;
-        const pieColors = ['#a60000', '#007bff', '#28a745', '#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#e83e8c'];
+              // --- API Fetch Functions ---
 
-        if (studentsPieChart) studentsPieChart.destroy();
-        if (pieLabels.length === 0) {
-          studentsPieChart = null;
-        } else {
-          studentsPieChart = new Chart(
-            document.getElementById('studentsPieChart').getContext('2d'),
-            {
-              type: 'pie',
-              data: {
-                labels: pieLabels,
-                datasets: [{ data: pieValues, backgroundColor: pieColors.slice(0, pieLabels.length) }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { position: 'bottom', labels: { font: { size: 12 } } },
-                  tooltip: {
-                    callbacks: {
-                      label: function (ctx) {
-                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                        const pct = total ? Math.round(ctx.parsed / total * 100) : 0;
-                        return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+              // Track whether year dropdown has been populated from the API
+              let yearDropdownPopulated = false;
+
+              async function fetchStats(yearOverride) {
+                try {
+                  const yearSel = document.getElementById('chartYearSelect');
+                  // Determine which year to fetch
+                  let year;
+                  if (yearOverride !== undefined) {
+                    year = yearOverride;
+                    // Sync dropdown to the requested year
+                    if (yearSel) yearSel.value = year;
+                  } else {
+                    year = (yearSel && yearSel.value) ? yearSel.value : 'all';
+                  }
+
+                  const url = (year && year !== 'all') ? `/api/admin/stats?year=${year}` : '/api/admin/stats?year=all';
+                  const res = await fetch(url);
+                  const data = await res.json();
+                  if (data.error) return;
+
+                  currentStatsData = data;
+
+                  // Populate academic year dropdown from all_years — ONLY ONCE
+                  if (!yearDropdownPopulated && data.meta && data.meta.all_years) {
+                    const sel = document.getElementById('chartYearSelect');
+                    if (sel) {
+                      // Keep existing selected value
+                      const currentSel = year;
+                      // Remove any placeholder children (keep the static "All Years" option)
+                      // Clear and rebuild from scratch to be safe
+                      sel.innerHTML = '';
+                      // All Years option
+                      const allOpt = document.createElement('option');
+                      allOpt.value = 'all';
+                      allOpt.textContent = 'All Years';
+                      if (currentSel === 'all' || !currentSel) allOpt.selected = true;
+                      sel.appendChild(allOpt);
+                      // Individual year options
+                      data.meta.all_years.forEach(yr => {
+                        const opt = document.createElement('option');
+                        opt.value = String(yr);               // e.g. "2025"
+                        opt.textContent = `${yr}-${yr + 1}`; // e.g. "2025-2026"
+                        if (String(yr) === String(currentSel)) opt.selected = true;
+                        sel.appendChild(opt);
+                      });
+                      yearDropdownPopulated = true;
+                    }
+                  }
+
+                  // Determine the final selected value (after dropdown is updated)
+                  const finalYear = yearSel ? yearSel.value : (year || 'all');
+                  const yearLabel = (finalYear === 'all' || !finalYear)
+                    ? 'All Years'
+                    : `${finalYear}-${parseInt(finalYear) + 1}`;
+
+                  // Update counter label
+                  const ctxLabel = document.getElementById('counterYearLabel');
+                  if (ctxLabel) ctxLabel.textContent = `Showing: ${yearLabel}`;
+
+                  // Update counters
+                  document.getElementById('admissionsCount').innerText = data.counters.admissions;
+                  document.getElementById('enrollmentsCount').innerText = data.counters.enrollments;
+
+                  // Render charts for current mode
+                  const chartKey = currentChartMode === 'visited' ? 'visited_charts' : 'admissions_charts';
+                  updateCharts(data[chartKey]);
+                } catch (e) { console.error(e); }
+              }
+
+              function switchChartMode(mode) {
+                if (!currentStatsData) return;
+                currentChartMode = mode;
+
+                // Highlight active counter card
+                document.getElementById('cardAdmissions').classList.toggle('active', mode === 'admissions');
+                document.getElementById('cardVisited').classList.toggle('active', mode === 'visited');
+
+                // Update titles
+                const barTitle = document.getElementById('barChartTitle');
+                const pieTitle = document.getElementById('pieChartTitle');
+                const summaryTitle = document.querySelector('#admissionsDataTable').previousElementSibling;
+                if (barTitle) barTitle.textContent = mode === 'admissions' ? 'Admissions Overview (Confirmed)' : 'Visited Overview (All Students)';
+                if (pieTitle) pieTitle.textContent = mode === 'admissions' ? 'Department-wise Admissions' : 'Department-wise All Students';
+                if (summaryTitle) summaryTitle.textContent = mode === 'admissions' ? 'Admissions Data (current view)' : 'All Students Data (current view)';
+
+                const chartKey = mode === 'visited' ? 'visited_charts' : 'admissions_charts';
+                updateCharts(currentStatsData[chartKey]);
+              }
+
+              // Track whether coord year dropdown has been populated
+              let coordYearDropdownPopulated = false;
+
+              async function fetchCoordinators(yearOverride) {
+                try {
+                  const coordSel = document.getElementById('coordYearSelect');
+                  let year;
+                  if (yearOverride !== undefined) {
+                    year = yearOverride;
+                    if (coordSel) coordSel.value = year;
+                  } else {
+                    year = coordSel ? coordSel.value : 'all';
+                  }
+
+                  const url = (year && year !== 'all')
+                    ? `/api/admin/coordinators?year=${year}`
+                    : '/api/admin/coordinators?year=all';
+
+                  const res = await fetch(url);
+                  coordinators = await res.json();
+
+                  // Populate year dropdown from current dashboard years (shared meta) — ONCE
+                  if (!coordYearDropdownPopulated && currentStatsData && currentStatsData.meta && currentStatsData.meta.all_years) {
+                    const sel = document.getElementById('coordYearSelect');
+                    if (sel) {
+                      const currentSel = year;
+                      sel.innerHTML = '';
+                      const allOpt = document.createElement('option');
+                      allOpt.value = 'all';
+                      allOpt.textContent = 'All Years';
+                      if (currentSel === 'all' || !currentSel) allOpt.selected = true;
+                      sel.appendChild(allOpt);
+                      currentStatsData.meta.all_years.forEach(yr => {
+                        const opt = document.createElement('option');
+                        opt.value = String(yr);
+                        opt.textContent = `${yr}-${yr + 1}`;
+                        if (String(yr) === String(currentSel)) opt.selected = true;
+                        sel.appendChild(opt);
+                      });
+                      coordYearDropdownPopulated = true;
+                    }
+                  }
+
+                  // Update label
+                  const finalYear = coordSel ? coordSel.value : (year || 'all');
+                  const coordLabel = (finalYear === 'all' || !finalYear)
+                    ? 'All Years'
+                    : `${finalYear}-${parseInt(finalYear) + 1}`;
+                  const lbl = document.getElementById('coordYearLabel');
+                  if (lbl) lbl.textContent = `Showing: ${coordLabel}`;
+
+                  renderCoordinatorGrid();
+                } catch (e) { console.error(e); }
+              }
+
+              async function fetchFeedback() {
+                try {
+                  const res = await fetch('/api/admin/feedback');
+                  feedbackData = await res.json();
+                  renderFeedbackTable();
+                } catch (e) { console.error(e); }
+              }
+
+              let filteredToday = null;
+              let filteredYesterday = null;
+
+              async function fetchWorkLog() {
+                try {
+                  const res = await fetch('/api/admin/work-log');
+                  const data = await res.json();
+                  if (data.error) return;
+
+                  // Apply filters (date, branch, status)
+                  const startDateVal = document.getElementById('startDate').value;
+                  const endDateVal = document.getElementById('endDate').value;
+                  const branchVal = document.getElementById('prefBranch').value;
+                  const statusVal = document.getElementById('filterStatus').value;
+
+                  let listToday = data.today || [];
+                  let listYesterday = data.yesterday || [];
+
+                  const applyFilters = (list) => list.filter(item => {
+                    // Branch filter
+                    if (branchVal && item.branch !== branchVal) return false;
+                    // Status filter
+                    if (statusVal && (item.status || '').toLowerCase() !== statusVal.toLowerCase()) return false;
+                    return true;
+                  });
+
+                  listToday = applyFilters(listToday);
+                  listYesterday = applyFilters(listYesterday);
+
+                  filteredToday = listToday;
+                  filteredYesterday = listYesterday;
+
+                  const renderRows = (list, tableId) => {
+                    const tbody = document.querySelector(`#${tableId} tbody`);
+                    tbody.innerHTML = "";
+                    if (!list || list.length === 0) {
+                      tbody.innerHTML = "<tr><td colspan='3'>No activity recorded</td></tr>";
+                      return;
+                    }
+                    list.forEach(item => {
+                      const tr = document.createElement("tr");
+                      tr.innerHTML = `<td>${item.coordinator || '-'}</td><td>${item.appId}</td><td>${item.student}</td>`;
+                      tbody.appendChild(tr);
+                    });
+                  };
+
+                  renderRows(listToday, 'todayWorkTable');
+                  renderRows(listYesterday, 'yesterdayWorkTable');
+
+                  // Dates
+                  document.getElementById('todayDate').innerText = new Date().toLocaleDateString();
+                  const y = new Date(); y.setDate(y.getDate() - 1);
+                  document.getElementById('yesterdayDate').innerText = y.toLocaleDateString();
+
+                } catch (e) { console.error(e); }
+              }
+
+              // --- Rendering & Logic ---
+
+              // 1. Charts
+              function updateCharts(chartsData) {
+                if (!chartsData) return;
+                const type = document.getElementById('graphType').value;
+                const barLabel = currentChartMode === 'visited' ? 'All Students (Visited)' : 'Admissions (Confirmed)';
+                const barColor = currentChartMode === 'visited' ? '#17a2b8' : '#a60000';
+
+                // Determine selected academic year — handle 'all' safely
+                const yearSel = document.getElementById('chartYearSelect');
+                const yearVal = yearSel ? yearSel.value : 'all';
+                const isAllYears = (yearVal === 'all' || yearVal === '');
+                // For 'all', fall back to current year for monthly labels (matches backend behaviour)
+                const selYear = isAllYears
+                  ? (currentStatsData && currentStatsData.meta ? currentStatsData.meta.cur_year : new Date().getFullYear())
+                  : parseInt(yearVal);
+                const acLabel = isAllYears ? 'All Years' : `${selYear}-${selYear + 1}`;
+
+                let labelSet, dataSet;
+                if (type === 'monthly') {
+                  // Always 12 months (Jan-Dec) of the selected year
+                  const mnths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                  labelSet = mnths.map(m => `${m} ${selYear}`);
+                  dataSet = chartsData.monthly.data;
+                  // Update subtitle
+                  const sub = document.getElementById('chartSubtitle');
+                  if (sub) sub.textContent = isAllYears ? `Showing all 12 months for current year` : `Showing all 12 months for ${acLabel}`;
+                } else if (type === 'yearly') {
+                  // One bar per year (all years in DB)
+                  labelSet = chartsData.yearly ? chartsData.yearly.labels : [];
+                  dataSet = chartsData.yearly ? chartsData.yearly.data : [];
+                  const sub = document.getElementById('chartSubtitle');
+                  if (sub) sub.textContent = `Showing all available years`;
+                } else {
+                  // Weekly — last 7 days, year filter doesn't apply
+                  labelSet = chartsData.weekly.labels;
+                  dataSet = chartsData.weekly.data;
+                  const sub = document.getElementById('chartSubtitle');
+                  if (sub) sub.textContent = `Showing last 7 days`;
+                }
+
+                // Update pie year label
+                const pieYearLbl = document.getElementById('pieYearLabel');
+                if (pieYearLbl) pieYearLbl.textContent = `Data filtered for: ${acLabel}`;
+
+                // Bar chart
+                if (admissionsChart) admissionsChart.destroy();
+                admissionsChart = new Chart(
+                  document.getElementById('admissionsChart').getContext('2d'),
+                  {
+                    type: 'bar',
+                    data: {
+                      labels: labelSet,
+                      datasets: [{
+                        label: barLabel,
+                        data: dataSet,
+                        backgroundColor: barColor,
+                        borderRadius: 4
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: { legend: { display: true, position: 'top' } },
+                      scales: {
+                        x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0 } },
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
                       }
                     }
                   }
+                );
+
+                // Data Summary Table
+                const tbody = document.querySelector('#admissionsDataTable tbody');
+                tbody.innerHTML = '';
+                for (let i = 0; i < labelSet.length; i++) {
+                  const tr = document.createElement('tr');
+                  tr.innerHTML = `<td>${labelSet[i]}</td><td>${dataSet[i]}</td>`;
+                  tbody.appendChild(tr);
+                }
+
+                // Pie chart — dept breakdown (already filtered by year in backend)
+                const pieLabels = chartsData.dept.labels;
+                const pieValues = chartsData.dept.data;
+                const pieColors = ['#a60000', '#007bff', '#28a745', '#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#e83e8c'];
+
+                if (studentsPieChart) studentsPieChart.destroy();
+                if (pieLabels.length === 0) {
+                  studentsPieChart = null;
+                } else {
+                  studentsPieChart = new Chart(
+                    document.getElementById('studentsPieChart').getContext('2d'),
+                    {
+                      type: 'pie',
+                      data: {
+                        labels: pieLabels,
+                        datasets: [{ data: pieValues, backgroundColor: pieColors.slice(0, pieLabels.length) }]
+                      },
+                      options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: { position: 'bottom', labels: { font: { size: 12 } } },
+                          tooltip: {
+                            callbacks: {
+                              label: function (ctx) {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = total ? Math.round(ctx.parsed / total * 100) : 0;
+                                return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+
+                // Dept Table
+                const deptBody = document.querySelector('#deptDataTable tbody');
+                deptBody.innerHTML = '';
+                for (let i = 0; i < pieLabels.length; i++) {
+                  const tr = document.createElement('tr');
+                  tr.innerHTML = `<td>${pieLabels[i]}</td><td>${pieValues[i]}</td>`;
+                  deptBody.appendChild(tr);
                 }
               }
-            }
-          );
-        }
 
-        // Dept Table
-        const deptBody = document.querySelector('#deptDataTable tbody');
-        deptBody.innerHTML = '';
-        for (let i = 0; i < pieLabels.length; i++) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${pieLabels[i]}</td><td>${pieValues[i]}</td>`;
-          deptBody.appendChild(tr);
-        }
-      }
+              // Refresh charts when graph view type changes (keeps selected year)
+              document.getElementById('graphType').addEventListener('change', () => fetchStats());
 
-      // Refresh charts when graph view type changes (keeps selected year)
-      document.getElementById('graphType').addEventListener('change', () => fetchStats());
+              // Refresh counters + charts when academic year changes
+              document.getElementById('chartYearSelect').addEventListener('change', function () {
+                const selectedYear = this.value; // 'all' or e.g. '2025'
+                fetchStats(selectedYear);
+              });
 
-      // Refresh counters + charts when academic year changes
-      document.getElementById('chartYearSelect').addEventListener('change', function () {
-        const selectedYear = this.value; // 'all' or e.g. '2025'
-        fetchStats(selectedYear);
-      });
+              // 2. Coordinators
+              let currentCoordinatorIdx = null;
 
-      // 2. Coordinators
-      let currentCoordinatorIdx = null;
+              function renderCoordinatorGrid() {
+                const grid = document.getElementById("coordinatorGrid");
+                grid.innerHTML = "";
 
-      function renderCoordinatorGrid() {
-        const grid = document.getElementById("coordinatorGrid");
-        grid.innerHTML = "";
+                if (coordinators.length === 0) {
+                  grid.innerHTML = "<p>No coordinators found.</p>";
+                  return;
+                }
 
-        if (coordinators.length === 0) {
-          grid.innerHTML = "<p>No coordinators found.</p>";
-          return;
-        }
+                // Determine year label for the badge subtitle
+                const coordSel = document.getElementById('coordYearSelect');
+                const coordYear = coordSel ? coordSel.value : 'all';
+                const yearBadgeLabel = (coordYear === 'all' || !coordYear)
+                  ? 'All Years'
+                  : `${coordYear}-${parseInt(coordYear) + 1}`;
 
-        // Determine year label for the badge subtitle
-        const coordSel = document.getElementById('coordYearSelect');
-        const coordYear = coordSel ? coordSel.value : 'all';
-        const yearBadgeLabel = (coordYear === 'all' || !coordYear)
-          ? 'All Years'
-          : `${coordYear}-${parseInt(coordYear) + 1}`;
-
-        coordinators.forEach((c, idx) => {
-          const card = document.createElement("div");
-          card.className = "coordinator-card";
-          card.style = "width:190px;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);padding:16px;text-align:center;cursor:pointer;transition:box-shadow 0.2s;position:relative;";
-          card.innerHTML = `
+                coordinators.forEach((c, idx) => {
+                  const card = document.createElement("div");
+                  card.className = "coordinator-card";
+                  card.style = "width:190px;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);padding:16px;text-align:center;cursor:pointer;transition:box-shadow 0.2s;position:relative;";
+                  card.innerHTML = `
             <img src="${c.photo}" alt="Profile" style="width:70px;height:70px;border-radius:50%;border:2px solid var(--accent);object-fit:cover;">
             <div style="margin-top:8px;font-weight:bold;font-size:14px;">${c.username}</div>
             <div style="color:#888;font-size:12px;margin-bottom:6px;">${c.email}</div>
@@ -1345,90 +1485,113 @@
             <div style="font-size:11px;color:#aaa;margin-top:2px;">${yearBadgeLabel}</div>
             <button class="action-btn" style="position:absolute;top:8px;right:8px;padding:2px 8px;font-size:12px;" onclick="event.stopPropagation();deleteCoordinator(${c.id});">Delete</button>
           `;
-          card.onclick = () => showCoordinatorProfileModal(idx);
-          grid.appendChild(card);
-        });
-      }
+                  card.onclick = () => showCoordinatorProfileModal(idx);
+                  grid.appendChild(card);
+                });
+              }
 
-      function showCoordinatorProfileModal(idx) {
-        currentCoordinatorIdx = idx;
-        const c = coordinators[idx];
-        document.getElementById("profileModalPhoto").src = c.photo;
-        document.getElementById("profileModalName").innerText = c.username;
-        document.getElementById("profileModalDept").innerText = c.email;
-        document.getElementById("profileModalAdmissions").innerText = c.admissions;
-        const ul = document.getElementById("profileModalStudents");
-        ul.innerHTML = "";
-        if (c.students && c.students.length > 0) {
-          c.students.forEach(s => {
-            const li = document.createElement("li");
-            li.innerText = `${s.name} (App ID: ${s.appId})`;
-            ul.appendChild(li);
-          });
-        } else {
-          ul.innerHTML = "<li>No recent students</li>";
-        }
-        document.getElementById("coordinatorProfileModal").classList.add("show");
-      }
+              function showCoordinatorProfileModal(idx) {
+                currentCoordinatorIdx = idx;
+                const c = coordinators[idx];
+                document.getElementById("profileModalPhoto").src = c.photo;
+                document.getElementById("profileModalName").innerText = c.username;
+                document.getElementById("profileModalDept").innerText = c.email;
+                document.getElementById("profileModalAdmissions").innerText = c.admissions;
+                const ul = document.getElementById("profileModalStudents");
+                ul.innerHTML = "";
+                if (c.students && c.students.length > 0) {
+                  c.students.forEach(s => {
+                    const li = document.createElement("li");
+                    li.innerText = `${s.name} (App ID: ${s.appId})`;
+                    ul.appendChild(li);
+                  });
+                } else {
+                  ul.innerHTML = "<li>No recent students</li>";
+                }
+                document.getElementById("coordinatorProfileModal").classList.add("show");
+              }
 
-      async function deleteCoordinator(id) {
-        if (!confirm("Are you sure?")) return;
-        const res = await fetch(`/api/admin/coordinators?id=${id}`, { method: 'DELETE' });
-        if (res.ok) {
-          // Re-fetch keeping the currently selected year
-          const coordSel = document.getElementById('coordYearSelect');
-          fetchCoordinators(coordSel ? coordSel.value : 'all');
-        } else alert("Failed to delete");
-      }
+              async function deleteCoordinator(id) {
+                if (!confirm("Are you sure?")) return;
+                const res = await fetch(`/api/admin/coordinators?id=${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                  // Re-fetch keeping the currently selected year
+                  const coordSel = document.getElementById('coordYearSelect');
+                  fetchCoordinators(coordSel ? coordSel.value : 'all');
+                } else alert("Failed to delete");
+              }
 
-      function closeCoordinatorProfileModal() {
-        document.getElementById("coordinatorProfileModal").classList.remove("show");
-      }
+              function closeCoordinatorProfileModal() {
+                document.getElementById("coordinatorProfileModal").classList.remove("show");
+              }
 
-      // Add Coordinator
-      function openAddCoordinatorModal() { document.getElementById("addCoordinatorModal").classList.add("show"); }
-      function closeAddCoordinatorModal() { document.getElementById("addCoordinatorModal").classList.remove("show"); }
+              // Add Coordinator
+              function openAddCoordinatorModal() { document.getElementById("addCoordinatorModal").classList.add("show"); }
+              function closeAddCoordinatorModal() { document.getElementById("addCoordinatorModal").classList.remove("show"); }
 
-      async function addCoordinator(e) {
-        e.preventDefault();
-        const email = document.getElementById("newCoordEmail").value.trim();
-        const username = document.getElementById("newCoordUsername").value.trim();
-        const password = document.getElementById("newCoordPassword").value.trim();
-        if (!email || !username || !password) return;
+              async function addCoordinator(e) {
+                e.preventDefault();
+                const email = document.getElementById("newCoordEmail").value.trim();
+                const username = document.getElementById("newCoordUsername").value.trim();
+                const password = document.getElementById("newCoordPassword").value.trim();
+                if (!email || !username || !password) return;
 
-        const res = await fetch('/api/admin/coordinators', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, username, password })
-        });
-        if (res.ok) {
-          fetchCoordinators();
-          closeAddCoordinatorModal();
-          e.target.reset();
-          alert("Coordinator added!");
-        } else {
-          alert("Error adding coordinator");
-        }
-      }
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const origText = submitBtn ? submitBtn.innerText : "Add";
+                if (submitBtn) {
+                  submitBtn.disabled = true;
+                  submitBtn.innerText = "Creating...";
+                }
 
-      // 3. Feedback / Applications
-      let editingFeedbackIdx = null;
-      let deletingFeedbackIdx = null; // actually the index in feedbackData array, but we need appNo
+                try {
+                  const res = await fetch('/api/admin/coordinators', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, username, password })
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                    fetchCoordinators();
+                    closeAddCoordinatorModal();
+                    e.target.reset();
+                    if (data.email_sent) {
+                      alert("✓ " + (data.message || `Coordinator added! Login credentials emailed to ${email}.`));
+                    } else if (data.warning) {
+                      alert("⚠️ " + data.warning);
+                    } else {
+                      alert("✓ Coordinator added successfully!");
+                    }
+                  } else {
+                    alert("Error adding coordinator: " + (data.error || "Unknown server error"));
+                  }
+                } catch (err) {
+                  alert("Network error while adding coordinator: " + err.message);
+                } finally {
+                  if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = origText;
+                  }
+                }
+              }
 
-      function renderFeedbackTable() {
-        const tbody = document.getElementById("feedbackTable").querySelector("tbody");
-        const search = document.getElementById("feedbackSearch").value.toLowerCase();
-        tbody.innerHTML = "";
+              // 3. Feedback / Applications
+              let editingFeedbackIdx = null;
+              let deletingFeedbackIdx = null; // actually the index in feedbackData array, but we need appNo
 
-        feedbackData.forEach((f, idx) => {
-          if (
-            (f.appNo || '').toLowerCase().includes(search) ||
-            (f.student || '').toLowerCase().includes(search) ||
-            (f.coordinator || '').toLowerCase().includes(search)
-          ) {
-            const previewText = f.feedback ? (f.feedback.length > 70 ? f.feedback.substring(0, 70) + '...' : f.feedback) : '-';
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
+              function renderFeedbackTable() {
+                const tbody = document.getElementById("feedbackTable").querySelector("tbody");
+                const search = document.getElementById("feedbackSearch").value.toLowerCase();
+                tbody.innerHTML = "";
+
+                feedbackData.forEach((f, idx) => {
+                  if (
+                    (f.appNo || '').toLowerCase().includes(search) ||
+                    (f.student || '').toLowerCase().includes(search) ||
+                    (f.coordinator || '').toLowerCase().includes(search)
+                  ) {
+                    const previewText = f.feedback ? (f.feedback.length > 70 ? f.feedback.substring(0, 70) + '...' : f.feedback) : '-';
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
             <td>${f.appNo}</td>
             <td>${f.student}</td>
             <td>${f.coordinator}</td>
@@ -1439,282 +1602,481 @@
               <button class="action-btn" style="background:#a60000; margin-left:4px;" onclick="openDeleteConfirmModal('${f.appNo}')">Delete</button>
             </td>
           `;
-            tbody.appendChild(tr);
-          }
-        });
-      }
+                    tbody.appendChild(tr);
+                  }
+                });
+              }
 
-      document.getElementById("feedbackSearch").addEventListener("input", renderFeedbackTable);
+              document.getElementById("feedbackSearch").addEventListener("input", renderFeedbackTable);
 
-      function openViewFeedbackModal(idx) {
-        const f = feedbackData[idx];
-        if (!f) return;
-        document.getElementById("viewAppNo").innerText = f.appNo || "-";
-        document.getElementById("viewStatus").innerText = (f.status || "CONFIRMED").toUpperCase();
-        document.getElementById("viewStudentName").innerText = f.student || "-";
-        document.getElementById("viewFatherName").innerText = f.father_name || "-";
-        document.getElementById("viewMobile").innerText = f.mobile || "-";
-        document.getElementById("viewBranch").innerText = f.preferred_branch || "-";
-        document.getElementById("viewCoordinator").innerText = f.coordinator || "-";
-        document.getElementById("viewDate").innerText = f.date_submitted || "-";
-        document.getElementById("viewNextVisit").innerText = f.next_visit || "---";
-        document.getElementById("viewAddress").innerText = f.address || "-";
-        document.getElementById("viewFeedbackText").innerText = f.feedback || "No feedback comments entered.";
+              function openViewFeedbackModal(idx) {
+                const f = feedbackData[idx];
+                if (!f) return;
+                document.getElementById("viewAppNo").innerText = f.appNo || "-";
+                document.getElementById("viewStatus").innerText = (f.status || "CONFIRMED").toUpperCase();
+                document.getElementById("viewStudentName").innerText = f.student || "-";
+                document.getElementById("viewFatherName").innerText = f.father_name || "-";
+                document.getElementById("viewMobile").innerText = f.mobile || "-";
+                document.getElementById("viewBranch").innerText = f.preferred_branch || "-";
+                document.getElementById("viewCoordinator").innerText = f.coordinator || "-";
+                document.getElementById("viewDate").innerText = f.date_submitted || "-";
+                document.getElementById("viewNextVisit").innerText = f.next_visit || "---";
+                document.getElementById("viewAddress").innerText = f.address || "-";
+                document.getElementById("viewFeedbackText").innerText = f.feedback || "No feedback comments entered.";
 
-        document.getElementById("viewFeedbackModal").classList.add("show");
-      }
+                document.getElementById("viewFeedbackModal").classList.add("show");
+              }
 
-      function closeViewFeedbackModal() {
-        document.getElementById("viewFeedbackModal").classList.remove("show");
-      }
+              function closeViewFeedbackModal() {
+                document.getElementById("viewFeedbackModal").classList.remove("show");
+              }
 
-      function openEditFeedbackModal(idx) {
-        editingFeedbackIdx = idx;
-        const f = feedbackData[idx];
-        document.getElementById("editAppNo").value = f.appNo || "";
-        document.getElementById("editStudentName").value = f.student || "";
-        document.getElementById("editAddress").value = f.address || "";
-        document.getElementById("editMobile").value = f.mobile || "";
-        document.getElementById("editCoordinatorName").value = f.coordinator || "";
-        document.getElementById("editFeedback").value = f.feedback || "";
-        // Reset other mock fields or hid them if not real
-        document.getElementById("editGender").value = "";
-        document.getElementById("editQualification").value = "";
-        document.getElementById("editGrade").value = "";
-        document.getElementById("editParentMobile").value = "";
+              function openEditFeedbackModal(idx) {
+                editingFeedbackIdx = idx;
+                const f = feedbackData[idx];
+                document.getElementById("editAppNo").value = f.appNo || "";
+                document.getElementById("editStudentName").value = f.student || "";
+                document.getElementById("editAddress").value = f.address || "";
+                document.getElementById("editMobile").value = f.mobile || "";
+                document.getElementById("editCoordinatorName").value = f.coordinator || "";
+                document.getElementById("editFeedback").value = f.feedback || "";
+                // Reset other mock fields or hid them if not real
+                document.getElementById("editGender").value = "";
+                document.getElementById("editQualification").value = "";
+                document.getElementById("editGrade").value = "";
+                document.getElementById("editParentMobile").value = "";
 
-        document.getElementById("editFeedbackModal").classList.add("show");
-      }
+                document.getElementById("editFeedbackModal").classList.add("show");
+              }
 
-      function closeEditFeedbackModal() {
-        document.getElementById("editFeedbackModal").classList.remove("show");
-        editingFeedbackIdx = null;
-      }
+              function closeEditFeedbackModal() {
+                document.getElementById("editFeedbackModal").classList.remove("show");
+                editingFeedbackIdx = null;
+              }
 
-      async function saveFeedbackEdit(e) {
-        e.preventDefault();
-        // We use edit_application API but mapped to form fields
-        const appNo = document.getElementById("editAppNo").value;
-        const payload = {
-          application_number: appNo,
-          student_name: document.getElementById("editStudentName").value,
-          form_data: {
-            feedback: document.getElementById("editFeedback").value
-            // Add other form_data fields if needed preserve
-          }
-        };
-        // Note: real implementation should merge form_data, but for this refactor we overwrite or simple patch
+              async function saveFeedbackEdit(e) {
+                e.preventDefault();
+                // We use edit_application API but mapped to form fields
+                const appNo = document.getElementById("editAppNo").value;
+                const payload = {
+                  application_number: appNo,
+                  student_name: document.getElementById("editStudentName").value,
+                  form_data: {
+                    feedback: document.getElementById("editFeedback").value
+                    // Add other form_data fields if needed preserve
+                  }
+                };
+                // Note: real implementation should merge form_data, but for this refactor we overwrite or simple patch
 
-        const res = await fetch('/edit_application', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+                const res = await fetch('/edit_application', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                });
 
-        if (res.ok) {
-          alert("Updated successfully");
-          closeEditFeedbackModal();
-          fetchFeedback();
-        } else {
-          alert("Update failed");
-        }
-      }
+                if (res.ok) {
+                  alert("Updated successfully");
+                  closeEditFeedbackModal();
+                  fetchFeedback();
+                } else {
+                  alert("Update failed");
+                }
+              }
 
-      let appToDelete = null;
-      function openDeleteConfirmModal(appNo) {
-        appToDelete = appNo;
-        document.getElementById("deleteConfirmModal").classList.add("show");
-      }
-      function closeDeleteConfirmModal() {
-        document.getElementById("deleteConfirmModal").classList.remove("show");
-        appToDelete = null;
-      }
-      async function confirmDeleteFeedback() {
-        if (appToDelete) {
-          const res = await fetch('/delete_feedback', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ application_number: appToDelete })
-          });
-          if (res.ok) {
-            alert("Feedback deleted!");
-            fetchFeedback();
-          } else {
-            alert("Delete failed");
-          }
-          closeDeleteConfirmModal();
-        }
-      }
+              let appToDelete = null;
+              function openDeleteConfirmModal(appNo) {
+                appToDelete = appNo;
+                document.getElementById("deleteConfirmModal").classList.add("show");
+              }
+              function closeDeleteConfirmModal() {
+                document.getElementById("deleteConfirmModal").classList.remove("show");
+                appToDelete = null;
+              }
+              async function confirmDeleteFeedback() {
+                if (appToDelete) {
+                  const res = await fetch('/delete_feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ application_number: appToDelete })
+                  });
+                  if (res.ok) {
+                    alert("Feedback deleted!");
+                    fetchFeedback();
+                  } else {
+                    alert("Delete failed");
+                  }
+                  closeDeleteConfirmModal();
+                }
+              }
 
-      // 4. Profile Logic
-      async function fetchProfile() {
-        try {
-          const res = await fetch('/api/admin/profile');
-          const data = await res.json();
-          if (data.error) return;
+              // 4. Profile Logic
+              async function fetchProfile() {
+                try {
+                  const res = await fetch('/api/admin/profile');
+                  const data = await res.json();
+                  if (data.error) return;
 
-          document.getElementById("profileName").value = `${data.first_name || ''} ${data.last_name || ''}`.trim();
-          document.getElementById("profileEmail").value = data.email || '';
-          document.getElementById("profilePhone").value = data.phone || '';
-          document.getElementById("profileRole").value = data.role || '';
-          document.getElementById("profileDOB").value = data.dob || '';
-          document.getElementById("profileAddress").value = data.address || '';
-          document.getElementById("profileCity").value = data.city || '';
-          document.getElementById("profileState").value = data.state || '';
-          document.getElementById("profilePincode").value = data.pincode || '';
-          document.getElementById("profileCountry").value = data.country || '';
+                  document.getElementById("profileName").value = `${data.first_name || ''} ${data.last_name || ''}`.trim();
+                  document.getElementById("profileEmail").value = data.email || '';
+                  document.getElementById("profilePhone").value = data.phone || '';
+                  document.getElementById("profileRole").value = data.role || '';
+                  document.getElementById("profileDOB").value = data.dob || '';
+                  document.getElementById("profileAddress").value = data.address || '';
+                  document.getElementById("profileCity").value = data.city || '';
+                  document.getElementById("profileState").value = data.state || '';
+                  document.getElementById("profilePincode").value = data.pincode || '';
+                  document.getElementById("profileCountry").value = data.country || '';
 
-          // Update Dashboard Sidebar info as well
-          document.getElementById("dashboardName").innerText = `${data.first_name || ''} ${data.last_name || ''}`.trim();
-          document.getElementById("dashboardEmail").innerText = data.email || '';
-          document.getElementById("dashboardPhone").innerText = data.phone || '';
-          document.getElementById("dashboardRole").innerText = data.role || 'Administrator';
+                  // Update Dashboard Sidebar info as well
+                  document.getElementById("dashboardName").innerText = `${data.first_name || ''} ${data.last_name || ''}`.trim();
+                  document.getElementById("dashboardEmail").innerText = data.email || '';
+                  document.getElementById("dashboardPhone").innerText = data.phone || '';
+                  document.getElementById("dashboardRole").innerText = data.role || 'Administrator';
 
-          if (data.photo) {
-            document.getElementById("profilePhotoPreview").src = data.photo;
-            document.getElementById("dashboardPhoto").src = data.photo;
-          }
+                  if (data.photo) {
+                    document.getElementById("profilePhotoPreview").src = data.photo;
+                    document.getElementById("dashboardPhoto").src = data.photo;
+                  }
 
-        } catch (e) { console.error(e); }
-      }
+                } catch (e) { console.error(e); }
+              }
 
-      document.getElementById("adminProfileForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
+              document.getElementById("adminProfileForm").addEventListener("submit", async function (e) {
+                e.preventDefault();
 
-        const fullName = document.getElementById("profileName").value.trim();
-        const parts = fullName.split(' ');
-        const firstName = parts[0];
-        const lastName = parts.slice(1).join(' ');
+                const fullName = document.getElementById("profileName").value.trim();
+                const parts = fullName.split(' ');
+                const firstName = parts[0];
+                const lastName = parts.slice(1).join(' ');
 
-        const formData = new FormData();
-        formData.append('first_name', firstName);
-        formData.append('last_name', lastName);
-        formData.append('email', document.getElementById("profileEmail").value);
-        formData.append('phone', document.getElementById("profilePhone").value);
-        formData.append('role', document.getElementById("profileRole").value);
-        formData.append('dob', document.getElementById("profileDOB").value);
-        formData.append('address', document.getElementById("profileAddress").value);
-        formData.append('city', document.getElementById("profileCity").value);
-        formData.append('state', document.getElementById("profileState").value);
-        formData.append('pincode', document.getElementById("profilePincode").value);
-        formData.append('country', document.getElementById("profileCountry").value);
+                const formData = new FormData();
+                formData.append('first_name', firstName);
+                formData.append('last_name', lastName);
+                formData.append('email', document.getElementById("profileEmail").value);
+                formData.append('phone', document.getElementById("profilePhone").value);
+                formData.append('role', document.getElementById("profileRole").value);
+                formData.append('dob', document.getElementById("profileDOB").value);
+                formData.append('address', document.getElementById("profileAddress").value);
+                formData.append('city', document.getElementById("profileCity").value);
+                formData.append('state', document.getElementById("profileState").value);
+                formData.append('pincode', document.getElementById("profilePincode").value);
+                formData.append('country', document.getElementById("profileCountry").value);
 
-        const photoInput = document.getElementById("profilePhotoInput");
-        if (photoInput.files && photoInput.files[0]) {
-          formData.append('photo', photoInput.files[0]);
-        }
+                const photoInput = document.getElementById("profilePhotoInput");
+                if (photoInput.files && photoInput.files[0]) {
+                  formData.append('photo', photoInput.files[0]);
+                }
 
-        try {
-          const res = await fetch('/api/admin/profile', {
-            method: 'POST',
-            // Content-Type header is not needed; fetch sets it automatically for FormData with boundary
-            body: formData
-          });
-          const result = await res.json();
-          if (result.success) {
-            alert("Profile updated successfully!");
-            fetchProfile(); // Refresh data
-            // Update dashboard name/role immediately for better UX
-            document.getElementById("dashboardName").innerText = fullName;
-            document.getElementById("dashboardRole").innerText = document.getElementById("profileRole").value;
-            if (result.photo) {
-              document.getElementById("dashboardPhoto").src = result.photo;
-            }
-          } else {
-            alert("Error updating profile: " + result.error);
-          }
-        } catch (e) {
-          alert("Error: " + e);
-        }
-      });
+                try {
+                  const res = await fetch('/api/admin/profile', {
+                    method: 'POST',
+                    // Content-Type header is not needed; fetch sets it automatically for FormData with boundary
+                    body: formData
+                  });
+                  const result = await res.json();
+                  if (result.success) {
+                    alert("Profile updated successfully!");
+                    fetchProfile(); // Refresh data
+                    // Update dashboard name/role immediately for better UX
+                    document.getElementById("dashboardName").innerText = fullName;
+                    document.getElementById("dashboardRole").innerText = document.getElementById("profileRole").value;
+                    if (result.photo) {
+                      document.getElementById("dashboardPhoto").src = result.photo;
+                    }
+                  } else {
+                    alert("Error updating profile: " + result.error);
+                  }
+                } catch (e) {
+                  alert("Error: " + e);
+                }
+              });
 
-      document.getElementById("changePasswordForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const currentPassword = document.getElementById("currentPassword").value;
-        const newPassword = document.getElementById("newPassword").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
+              document.getElementById("changePasswordForm").addEventListener("submit", async function (e) {
+                e.preventDefault();
+                const currentPassword = document.getElementById("currentPassword").value;
+                const newPassword = document.getElementById("newPassword").value;
+                const confirmPassword = document.getElementById("confirmPassword").value;
 
-        if (newPassword !== confirmPassword) {
-          alert("New passwords do not match!");
-          return;
-        }
+                if (newPassword !== confirmPassword) {
+                  alert("New passwords do not match!");
+                  return;
+                }
 
-        try {
-          const res = await fetch('/api/admin/change_password', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
-          });
-          const result = await res.json();
-          if (result.success) {
-            alert("Password changed successfully!");
-            e.target.reset();
-          } else {
-            alert("Error: " + result.error);
-          }
-        } catch (e) {
-          alert("Error: " + e);
-        }
-      });
+                try {
+                  const res = await fetch('/api/admin/change_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+                  });
+                  const result = await res.json();
+                  if (result.success) {
+                    alert("Password changed successfully!");
+                    e.target.reset();
+                  } else {
+                    alert("Error: " + result.error);
+                  }
+                } catch (e) {
+                  alert("Error: " + e);
+                }
+              });
 
-      // Initial Load
-      showSection('dashboard');
-      fetchStats();
-      // Notifications toggle
-      function toggleNotifications() {
-        const popup = document.getElementById("notifPopup");
-        popup.style.display = popup.style.display === "block" ? "none" : "block";
-      }
-      // Profile Photo Preview
-      document.getElementById("profilePhotoInput").addEventListener("change", function () {
-        if (this.files && this.files[0]) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            document.getElementById("profilePhotoPreview").src = e.target.result;
-            document.getElementById("dashboardPhoto").src = e.target.result;
-          }
-          reader.readAsDataURL(this.files[0]);
-        }
-      });
+              // Initial Load
+              showSection('dashboard');
+              fetchStats();
+              // Notifications toggle
+              function toggleNotifications() {
+                const popup = document.getElementById("notifPopup");
+                popup.style.display = popup.style.display === "block" ? "none" : "block";
+              }
+              // Profile Photo Preview
+              document.getElementById("profilePhotoInput").addEventListener("change", function () {
+                if (this.files && this.files[0]) {
+                  const reader = new FileReader();
+                  reader.onload = function (e) {
+                    document.getElementById("profilePhotoPreview").src = e.target.result;
+                    document.getElementById("dashboardPhoto").src = e.target.result;
+                  }
+                  reader.readAsDataURL(this.files[0]);
+                }
+              });
 
-      // Coordinator year filter — refresh cards when year changes
-      document.getElementById('coordYearSelect').addEventListener('change', function () {
-        fetchCoordinators(this.value); // 'all' or e.g. '2025'
-      });
+              // Coordinator year filter — refresh cards when year changes
+              document.getElementById('coordYearSelect').addEventListener('change', function () {
+                fetchCoordinators(this.value); // 'all' or e.g. '2025'
+              });
 
-      // Filter and Export Logic - re-run fetchWorkLog on any filter change
-      document.getElementById('startDate').addEventListener('change', fetchWorkLog);
-      document.getElementById('endDate').addEventListener('change', fetchWorkLog);
-      document.getElementById('prefBranch').addEventListener('change', fetchWorkLog);
-      document.getElementById('filterStatus').addEventListener('change', fetchWorkLog);
+              // Filter and Export Logic - re-run fetchWorkLog on any filter change
+              document.getElementById('startDate').addEventListener('change', fetchWorkLog);
+              document.getElementById('endDate').addEventListener('change', fetchWorkLog);
+              document.getElementById('prefBranch').addEventListener('change', fetchWorkLog);
+              document.getElementById('filterStatus').addEventListener('change', fetchWorkLog);
 
-      function exportToExcel() {
-        const start = document.getElementById("startDate").value || "2000-01-01";
-        const end = document.getElementById("endDate").value || "2099-12-31";
-        const branch = document.getElementById("prefBranch").value;
-        const status = document.getElementById("filterStatus").value;
-        const params = new URLSearchParams({ start_date: start, end_date: end });
-        if (branch) params.append('branch', branch);
-        if (status) params.append('status', status);
-        window.location.href = `/download_excel?${params.toString()}`;
-      }
+              function exportToExcel() {
+                const start = document.getElementById("startDate").value || "2000-01-01";
+                const end = document.getElementById("endDate").value || "2099-12-31";
+                const branch = document.getElementById("prefBranch").value;
+                const status = document.getElementById("filterStatus").value;
+                const params = new URLSearchParams({ start_date: start, end_date: end });
+                if (branch) params.append('branch', branch);
+                if (status) params.append('status', status);
+                window.location.href = `/download_excel?${params.toString()}`;
+              }
 
-      function exportToPDF() {
-        const start = document.getElementById("startDate").value || "2000-01-01";
-        const end = document.getElementById("endDate").value || "2099-12-31";
-        const branch = document.getElementById("prefBranch").value;
-        const status = document.getElementById("filterStatus").value;
-        const params = new URLSearchParams({ start_date: start, end_date: end });
-        if (branch) params.append('branch', branch);
-        if (status) params.append('status', status);
-        window.location.href = `/download_pdf?${params.toString()}`;
-      }
+              function exportToPDF() {
+                const start = document.getElementById("startDate").value || "2000-01-01";
+                const end = document.getElementById("endDate").value || "2099-12-31";
+                const branch = document.getElementById("prefBranch").value;
+                const status = document.getElementById("filterStatus").value;
+                const params = new URLSearchParams({ start_date: start, end_date: end });
+                if (branch) params.append('branch', branch);
+                if (status) params.append('status', status);
+                window.location.href = `/download_pdf?${params.toString()}`;
+              }
 
-      document.getElementById("downloadExcelBtn").addEventListener("click", exportToExcel);
-      document.getElementById("downloadPdfBtn").addEventListener("click", exportToPDF);
+              document.getElementById("downloadExcelBtn").addEventListener("click", exportToExcel);
+              document.getElementById("downloadPdfBtn").addEventListener("click", exportToPDF);
 
-      // We will override fetchStats logic to support filtering by date based on UI
-    </script>
+              // ================= Follow-up Email Monitoring (Admin) =================
+              let adminFollowupData = [];
+              let currentAdminFollowupFilter = 'all';
+
+              async function fetchAdminFollowUps() {
+                try {
+                  const res = await fetch('/api/admin/follow_ups');
+                  const data = await res.json();
+                  adminFollowupData = data.follow_ups || [];
+                  updateAdminFollowupMetrics();
+                  renderAdminFollowupTable();
+                } catch (e) {
+                  console.error("Failed to fetch admin follow-ups:", e);
+                }
+              }
+
+              function updateAdminFollowupMetrics() {
+                const total = adminFollowupData.length;
+                const scheduled = adminFollowupData.filter(f => f.status === 'scheduled').length;
+                const sent = adminFollowupData.filter(f => f.status === 'email_sent' || (f.student_email_status === 'sent' && f.coordinator_email_status === 'sent')).length;
+                const completed = adminFollowupData.filter(f => f.status === 'completed').length;
+                const missed = adminFollowupData.filter(f => f.status === 'missed').length;
+                const failed = adminFollowupData.filter(f => f.student_email_status === 'email_failed' || f.coordinator_email_status === 'email_failed' || f.status === 'email_failed').length;
+
+                document.getElementById('adminTotalFollowups').innerText = total;
+                document.getElementById('adminScheduledFollowups').innerText = scheduled;
+                document.getElementById('adminSentFollowups').innerText = sent;
+                document.getElementById('adminCompletedFollowups').innerText = completed;
+                document.getElementById('adminMissedFollowups').innerText = missed;
+                document.getElementById('adminFailedFollowups').innerText = failed;
+              }
+
+              function filterAdminFollowups(filter, btn) {
+                currentAdminFollowupFilter = filter;
+                document.querySelectorAll('.admin-f-filter').forEach(b => {
+                  b.style.background = '#e5e7eb';
+                  b.style.color = '#374151';
+                });
+                if (btn) {
+                  btn.style.background = 'var(--accent, #a60000)';
+                  btn.style.color = '#fff';
+                }
+                renderAdminFollowupTable();
+              }
+
+              function filterAdminFollowupsTable() {
+                renderAdminFollowupTable();
+              }
+
+              function renderAdminFollowupTable() {
+                const tbody = document.getElementById('adminFollowupTableBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                const search = (document.getElementById('adminFollowupSearch')?.value || '').toLowerCase().trim();
+
+                const filtered = adminFollowupData.filter(f => {
+                  // Status filter
+                  if (currentAdminFollowupFilter === 'scheduled' && f.status !== 'scheduled') return false;
+                  if (currentAdminFollowupFilter === 'sent' && f.status !== 'email_sent' && (f.student_email_status !== 'sent' || f.coordinator_email_status !== 'sent')) return false;
+                  if (currentAdminFollowupFilter === 'completed' && f.status !== 'completed') return false;
+                  if (currentAdminFollowupFilter === 'missed' && f.status !== 'missed') return false;
+                  if (currentAdminFollowupFilter === 'failed' && f.student_email_status !== 'email_failed' && f.coordinator_email_status !== 'email_failed' && f.status !== 'email_failed') return false;
+
+                  // Search query
+                  if (search) {
+                    const app = (f.application_number || '').toLowerCase();
+                    const stu = (f.student_name || '').toLowerCase();
+                    const coord = (f.coordinator_name || '').toLowerCase();
+                    const mail = (f.student_email || '').toLowerCase();
+                    if (!app.includes(search) && !stu.includes(search) && !coord.includes(search) && !mail.includes(search)) {
+                      return false;
+                    }
+                  }
+                  return true;
+                });
+
+                if (filtered.length === 0) {
+                  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:24px; color:#6b7280;">No matching follow-up records found.</td></tr>';
+                  return;
+                }
+
+                filtered.forEach(f => {
+                  // Status badge
+                  let statusBadge = '';
+                  const st = f.status || 'scheduled';
+                  if (st === 'completed') statusBadge = '<span style="background:#dcfce7; color:#15803d; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Completed</span>';
+                  else if (st === 'missed') statusBadge = '<span style="background:#fef3c7; color:#b45309; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Missed</span>';
+                  else if (st === 'email_failed') statusBadge = '<span style="background:#fee2e2; color:#b91c1c; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Failed</span>';
+                  else if (st === 'email_sent') statusBadge = '<span style="background:#e0e7ff; color:#4338ca; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Sent</span>';
+                  else statusBadge = '<span style="background:#dbeafe; color:#1d4ed8; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Scheduled</span>';
+
+                  const renderBadge = (status, email, notifId) => {
+                    if (status === 'sent') return '<span style="color:#16a34a; font-weight:bold;">✓ Sent</span>';
+                    if (status === 'email_failed') return `<span style="color:#dc2626; font-weight:bold;">⚠ Failed</span> ${notifId ? `<button onclick="retryAdminNotification(${notifId}, '${email || ''}')" style="font-size:11px; color:#2563eb; text-decoration:underline; border:none; background:none; cursor:pointer;">Retry</button>` : ''}`;
+                    return '<span style="color:#6b7280;">⏱ Scheduled</span>';
+                  };
+
+                  const sBadge = renderBadge(f.student_email_status, f.student_email, f.student_notif_id);
+                  const cBadge = renderBadge(f.coordinator_email_status, '', f.coord_notif_id);
+
+                  tbody.innerHTML += `
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:10px 14px; font-weight:600; color:#111;">${f.application_number}</td>
+              <td style="padding:10px 14px;">
+                <div style="font-weight:600; color:#333;">${f.student_name}</div>
+                <div style="font-size:11px; color:#6b7280;">${f.student_email || 'No email on file'}</div>
+              </td>
+              <td style="padding:10px 14px; color:#374151;">${f.coordinator_name || 'Unassigned'}</td>
+              <td style="padding:10px 14px;">
+                <div style="font-weight:600; color:#333;">${f.scheduled_date || f.visit_date || ''}</div>
+                <div style="font-size:11px; color:#6b7280;">${f.scheduled_time || f.visit_time || ''}</div>
+              </td>
+              <td style="padding:10px 14px;"><span style="background:#f3f4f6; padding:2px 6px; border-radius:4px; font-size:11px;">${f.purpose || 'Confirm Admission'}</span></td>
+              <td style="padding:10px 14px;">${sBadge}</td>
+              <td style="padding:10px 14px;">${cBadge}</td>
+              <td style="padding:10px 14px;">${statusBadge}</td>
+              <td style="padding:10px 14px; text-align:center;">
+                <button onclick="window.location.href='/view_confirm_application?app_no=${f.application_number}'" class="action-btn" style="padding:4px 8px; font-size:11px; background:#4b5563;">View</button>
+              </td>
+            </tr>
+          `;
+                });
+              }
+
+              async function sendAdminTestEmail() {
+                const input = document.getElementById('adminTestEmailInput');
+                const status = document.getElementById('adminTestEmailStatus');
+                const btn = document.getElementById('sendTestEmailBtn');
+                const email = input.value.trim();
+
+                if (!email) {
+                  alert('Please enter a recipient email address.');
+                  return;
+                }
+
+                btn.disabled = true;
+                btn.innerText = 'Sending...';
+                status.style.display = 'block';
+                status.innerHTML = '<span style="color:#6b7280;">Connecting to SMTP server...</span>';
+
+                try {
+                  const res = await fetch('/api/admin/send_test_email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                  });
+                  const data = await res.json();
+                  btn.disabled = false;
+                  btn.innerText = 'Send Test';
+
+                  if (res.ok && data.success) {
+                    status.innerHTML = `<span style="color:#16a34a; font-weight:600;">✓ ${data.message}</span>`;
+                  } else {
+                    status.innerHTML = `<span style="color:#dc2626; font-weight:600;">⚠ ${data.error || 'Failed to send test email.'}</span>`;
+                  }
+                } catch (e) {
+                  btn.disabled = false;
+                  btn.innerText = 'Send Test';
+                  status.innerHTML = `<span style="color:#dc2626; font-weight:600;">⚠ Error: ${e.message}</span>`;
+                }
+              }
+
+              async function triggerAdminSchedulerCheck() {
+                try {
+                  const res = await fetch('/api/scheduler/run_check', { method: 'POST' });
+                  const data = await res.json();
+                  if (data.success) {
+                    alert(`Scheduler check ran successfully! ${data.processed} due email(s) processed.`);
+                    fetchAdminFollowUps();
+                  } else {
+                    alert(`Scheduler check error: ${data.error}`);
+                  }
+                } catch (e) {
+                  alert(`Error: ${e.message}`);
+                }
+              }
+
+              async function retryAdminNotification(notifId, currentEmail) {
+                const email = prompt("Confirm or update recipient email address to retry sending:", currentEmail || "");
+                if (email === null) return;
+
+                try {
+                  const res = await fetch('/retry_email_notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notification_id: notifId, recipient_email: email })
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    alert("Email sent successfully!");
+                    fetchAdminFollowUps();
+                  } else {
+                    alert("Failed to send: " + (data.error || "Unknown error"));
+                    fetchAdminFollowUps();
+                  }
+                } catch (e) {
+                  alert("Error: " + e.message);
+                }
+              }
+            </script>
 </body>
 
 </html>

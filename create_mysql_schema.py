@@ -1,28 +1,33 @@
 import mysql.connector
 import os
 
-# Database configuration - UPDATE THESE
-DB_HOST = "localhost"
-DB_USER = "root"        # Update this
-DB_PASSWORD = "gummallajithendra06@"
-DB_NAME = "project_db"  # Update this
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-def create_schema():
-    print(f"Connecting to MySQL at {DB_HOST}...")
+# Database configuration from environment or fallback
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_NAME = os.getenv("DB_NAME", "project_db")
+
+def create_schema(password=None):
+    pwd = password if password is not None else DB_PASSWORD
+    print(f"Connecting to MySQL at {DB_HOST} with user '{DB_USER}'...")
     try:
-        # Connect to MySQL server (no database selected yet)
         conn = mysql.connector.connect(
             host=DB_HOST,
             user=DB_USER,
-            password=DB_PASSWORD
+            password=pwd,
+            connection_timeout=5
         )
         cursor = conn.cursor()
         
-        # Create database if not exists
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}")
         print(f"Database '{DB_NAME}' created/verified.")
         
-        # Connect to the database
         conn.database = DB_NAME
         
         # Admins
@@ -34,7 +39,15 @@ def create_schema():
                 email VARCHAR(100) UNIQUE,
                 phone VARCHAR(20),
                 password VARCHAR(255),
-                work TEXT
+                work TEXT,
+                photo VARCHAR(255),
+                role VARCHAR(50),
+                dob VARCHAR(50),
+                address TEXT,
+                city VARCHAR(100),
+                state VARCHAR(100),
+                pincode VARCHAR(20),
+                country VARCHAR(100)
             )
         """)
         print("Table 'admins' verified.")
@@ -48,15 +61,20 @@ def create_schema():
                 email VARCHAR(100) UNIQUE,
                 phone VARCHAR(20),
                 password VARCHAR(255),
-                work TEXT
+                work TEXT,
+                photo VARCHAR(255),
+                role VARCHAR(50),
+                dob VARCHAR(50),
+                address TEXT,
+                city VARCHAR(100),
+                state VARCHAR(100),
+                pincode VARCHAR(20),
+                country VARCHAR(100)
             )
         """)
         print("Table 'coordinators' verified.")
 
         # Applications
-        # SQLite used TEXT for dates, MySQL has DATETIME but we'll stick to VARCHAR/TEXT 
-        # for compatibility unless we want to migrate data types properly.
-        # Keeping consistent with original logic first.
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS applications (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -69,10 +87,12 @@ def create_schema():
                 preferred_branch VARCHAR(100),
                 mobile VARCHAR(20),
                 address TEXT,
-                form_data TEXT,
+                form_data LONGTEXT,
                 date_opened VARCHAR(50),
                 date_submitted VARCHAR(50),
-                last_modified VARCHAR(50)
+                last_modified VARCHAR(50),
+                feedback TEXT,
+                next_visit VARCHAR(50)
             )
         """)
         print("Table 'applications' verified.")
@@ -84,29 +104,64 @@ def create_schema():
                 last_number INT NOT NULL
             )
         """)
-        # Initialize sequence if not exists
         cursor.execute("SELECT COUNT(*) FROM application_sequence")
         if cursor.fetchone()[0] == 0:
             print("Initializing application_sequence...")
-            # Default start
             start = 4879
             cursor.execute("INSERT INTO application_sequence (id, last_number) VALUES (1, %s)", (start,))
         print("Table 'application_sequence' verified.")
 
-        # Default admin
-        cursor.execute("SELECT * FROM admins WHERE email = %s", ("admin@example.com",))
-        if not cursor.fetchone():
-            print("Creating default admin...")
-            cursor.execute("""
-                INSERT INTO admins (first_name, last_name, email, phone, password, work)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, ("Default", "Admin", "admin@example.com", "0000000000", "admin123", ""))
-        
+        # Follow-ups Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS follow_ups (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                application_id INT NULL,
+                application_number VARCHAR(50) NOT NULL,
+                coordinator_id INT NULL,
+                coordinator_name VARCHAR(100) NULL,
+                student_name VARCHAR(255) NULL,
+                student_email VARCHAR(255) NULL,
+                feedback TEXT NULL,
+                scheduled_date VARCHAR(50) NULL,
+                scheduled_time VARCHAR(50) NULL,
+                visit_date VARCHAR(50) NULL,
+                visit_time VARCHAR(50) NULL,
+                scheduled_at VARCHAR(50) NOT NULL,
+                purpose VARCHAR(255) NULL,
+                reminder_setting VARCHAR(50) DEFAULT 'at_event',
+                status VARCHAR(50) DEFAULT 'scheduled',
+                notes TEXT NULL,
+                created_at VARCHAR(50) NULL,
+                updated_at VARCHAR(50) NULL,
+                completed_at VARCHAR(50) NULL
+            )
+        """)
+        print("Table 'follow_ups' verified.")
+
+        # Email Notifications Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS email_notifications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                follow_up_id INT,
+                application_number VARCHAR(50),
+                recipient_type VARCHAR(50),
+                recipient_email VARCHAR(255),
+                subject VARCHAR(255),
+                scheduled_at VARCHAR(50),
+                sent_at VARCHAR(50),
+                status VARCHAR(50) DEFAULT 'scheduled',
+                error_message TEXT,
+                created_at VARCHAR(50)
+            )
+        """)
+        print("Table 'email_notifications' verified.")
+
         conn.commit()
         print("Schema creation complete.")
-        
+        return True
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+        return False
     finally:
         if 'conn' in locals() and conn.is_connected():
             cursor.close()

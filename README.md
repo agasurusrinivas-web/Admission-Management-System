@@ -158,7 +158,7 @@ AMS--main/
 ├── static/                        # Static assets (CSS, JS, media)
 │   ├── css/                       # Modular stylesheets
 │   ├── js/                        # Form wizard engine & AJAX handlers
-│   ├── hlogo.jpg                  # Prathyusha Engineering College seal
+│   ├── PEC Logo.png               # Prathyusha Engineering College official seal / logo
 │   ├── homepage.jpg               # High-resolution campus landing backdrop
 │   └── uploads/                   # Stored candidate photographs and documents
 └── templates/                     # Jinja2 HTML templates

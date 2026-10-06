@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Our Vision & Mission - Prathyusha Engineering College</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='PEC Logo.png') }}">
   <style>
     body {
       background: #fdfdfd;
@@ -181,7 +182,7 @@
         + '@media print{.page{border-bottom:none;}.print-bar{display:none;}body{margin:8mm 12mm;}}';
 
       var hdr = '<div class="hdr" style="display:flex;align-items:center;justify-content:center;gap:20px;">'
-        + '<img src="/static/logo.jpg" style="width:70px;height:70px;">'
+        + '<img src="/static/PEC%20Logo.png" style="width:70px;height:70px;object-fit:contain;">'
         + '<div style="text-align:center;"><h1>PRATHYUSHA ENGINEERING COLLEGE</h1>'
         + '<p><b>AN AUTONOMOUS INSTITUTION</b> | ARANVOYALKUPPAM, POONAMALLEE, TIRUVALLUR-602 025.</p>'
         + '<p>PHONE 044-37673767 | www.prathyusha.edu.in | admission@prathyusha.edu.in</p>'

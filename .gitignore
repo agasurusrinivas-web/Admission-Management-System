@@ -44,3 +44,14 @@ Thumbs.db
 temp_rendered.html
 temp_db_dump.json
 db_output.txt
+
+# Environment variables
+.env
+
+# Database and uploads
+users.db
+*.db
+*.sqlite
+*.sqlite3
+static/uploads/
+!static/uploads/.gitkeep
